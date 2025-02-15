@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zeebe-restore-job-0
+spec:
+  template:
+    spec:
+      containers:
+      - name: zeebe-restore
+        image: camunda/zeebe:8.6.0 # Adjust based on your Zeebe version
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          ls -laR /usr/local/zeebe/data;
+          rm -rf /usr/local/zeebe/data/* /usr/local/zeebe/data/.*;
+          echo "Starting restoration process..."
+          ls -laR /usr/local/zeebe/data;
+          /usr/local/zeebe/bin/restore --backupId=${ZEEBE_RESTORE_FROM_BACKUP_ID}
+          echo "Restoration complete."
+        env:
+        - name: ZEEBE_RESTORE_FROM_BACKUP_ID
+          valueFrom:
+            secretKeyRef:
+              name: backup-timeid
+              key: backupTimeId
+        - name: ZEEBE_BROKER_DATA_BACKUP_STORE
+          value: "AZURE"
+        - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_CONNECTIONSTRING
+          value: Def....net
+        - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_BASEPATH
+          value: zeebecontainer
+
+        - name: ZEEBE_BROKER_CLUSTER_NODEID
+          value: "0"
+        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
+          value: "3"
+        volumeMounts:
+        - name: data
+          mountPath: /usr/local/zeebe/data
+        securityContext:
+          runAsUser: 1000
+          runAsNonRoot: true
+      securityContext:
+        fsGroup: 1000 
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-camunda-zeebe-0
+      restartPolicy: OnFailure

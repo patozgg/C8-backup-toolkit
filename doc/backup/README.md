@@ -3,7 +3,7 @@
 
 According to the documentation https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/backup-and-restore/, the serie of command to run are
 
-The backup ID is 11
+In this example, the backup ID is `12`
 
 # Optimize
 
@@ -16,17 +16,17 @@ Start the backup
 ````shell
 curl -X POST "http://localhost:8092/actuator/backups" \
 -H 'Content-Type: application/json' \
--d '{ "backupId": 11 }'
+-d '{ "backupId": 12 }'
 ````
 
 Check the status
 ````shell
-curl -X GET "http://localhost:8092/actuator/backups/11"
+curl -X GET "http://localhost:8092/actuator/backups/12"
 ````
 
 wait for an answer COMPLETE
 ```json
-{"backupId":11,"failureReason":null,"state":"COMPLETED"}
+{"backupId":12,"failureReason":null,"state":"COMPLETED"}
 ```
 
 
@@ -39,19 +39,19 @@ Start the backup
 ````shell
 curl -X POST 'http://localhost:9600/actuator/backups' \
 -H 'Content-Type: application/json' \
--d '{ "backupId": 11 }'
+-d '{ "backupId": 12 }'
 ````
 
 
 Check the status
 ````shell
-curl -X GET "http://localhost:9600/actuator/backups/11"
+curl -X GET "http://localhost:9600/actuator/backups/12"
 ````
 
 Wait for the status COMPLETED
 
 ```json
-{"backupId":11,"state":"COMPLETED"}
+{"backupId":12,"state":"COMPLETED"}
 ```
 
 # tasklist
@@ -64,19 +64,19 @@ Start the backup
 ````shell
 curl -X POST 'http://localhost:9600/actuator/backups' \
 -H 'Content-Type: application/json' \
--d '{ "backupId": 11 }'
+-d '{ "backupId": 12 }'
 ````
 
 
 Check the status
 ````shell
-curl -X GET "http://localhost:9600/actuator/backups/11"
+curl -X GET "http://localhost:9600/actuator/backups/12"
 ````
 
 Wait for the status COMPLETED
 
 ```json
-{"backupId":11,"state":"COMPLETED"}
+{"backupId":12,"state":"COMPLETED"}
 ```
 
 
@@ -99,22 +99,22 @@ curl -X POST "http://localhost:9600/actuator/exporting/pause"   -H 'Content-Type
 2. Backup zeebe record
 
 ```shell
-curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/11 -H 'Content-Type: application/json'   \
+curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/12 -H 'Content-Type: application/json'   \
 -d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'
 ```
 
 3. backup Zeebe 
 ```shell
-curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"11\"}"
+curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"12\"}"
 ```
 
 4. Monitor the backup
 ```shell
-curl -s "http://localhost:9600/actuator/backups/11"
+curl -s "http://localhost:9600/actuator/backups/12"
 ```
 wait for the status
 ```json
-{"backupId":11,"state":"COMPLETED"}
+{"backupId":12,"state":"COMPLETED"}
 ```
 
 5. Resume Zeebe
