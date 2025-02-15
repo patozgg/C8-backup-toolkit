@@ -50,11 +50,11 @@ curl -X POST "http://localhost:9600/actuator/exporting/resume"  -H 'Content-Type
 
 Some files must be visible on the storage
 
-![Container after Zeebe backup](ZeebeContainerContent.png)
+![Container after Zeebe backup](image/ZeebeContainerContent.png)
 
 Under folder 1, a folder 8 is visible (8 is the backup ID)
 
-![Detail of the container after Zeebe backup](ZeebeContainerDetail.png)
+![Detail of the container after Zeebe backup](image/ZeebeContainerDetail.png)
 
 
 
@@ -166,7 +166,7 @@ curl -X PUT "http://localhost:9200/_snapshot/optimizerepository" -H "Content-Typ
 }'
 ```
 
-Get all repository, to verify the creation
+Get all repositories, to verify the creation
 
 ```shell
 curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
@@ -176,13 +176,13 @@ curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 Run a backup on Zeebe Record
 
 ```shell
-curl -X PUT http://localhost:9200/_snapshot/operaterepository/backup_1 -H 'Content-Type: application/json'   \
+curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/backup_1 -H 'Content-Type: application/json'   \
 -d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'
 ```
 
 An answer {“accepted”:true}, and a folder is created on the container
 
-![Container after zeebe record backup](ElasticSearchZeebeRecordBackup.png)
+![Container after zeebe record backup](image/ElasticSearchZeebeRecordBackup.png)
 
 
 ** Restore**
@@ -230,7 +230,7 @@ curl -X POST http://localhost:9600/actuator/backups -H 'Content-Type: applicatio
 
 2. Check the container
 
-![Container after Operate backup.png](ElasticSearchOperateBackup.png)
+![Container after Operate backup.png](image/ElasticSearchOperateBackup.png)
 
 Get all snapshot on the repository
 

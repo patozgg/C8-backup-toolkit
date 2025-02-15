@@ -14,7 +14,7 @@ Give a name like `pierreyvesstorageaccount`, choose a resource Group and select 
 
 Access the key on the left menu, section `Security + networking`, section `access keys`
 
-![Azure Access key.png](AzureAccessKey.png)
+![Azure Access key.png](image/AzureAccessKey.png)
 
 Get the storage account connection string via the command line
 ```shell
