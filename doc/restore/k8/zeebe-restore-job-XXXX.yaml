@@ -7,7 +7,8 @@ spec:
     spec:
       containers:
       - name: zeebe-restore
-        image: camunda/zeebe:8.6.0 # Adjust based on your Zeebe version
+        # TODO Adjust based on your Zeebe version
+        image: camunda/zeebe:1.0.0
         command: ["/bin/bash", "-c"]
         args:
         - |
@@ -31,13 +32,13 @@ spec:
           value: zeebecontainer
 
         - name: ZEEBE_BROKER_CLUSTER_NODEID
-          value: "0"
+          value: "TODO: VALUE-FROM-0-TO-(ClusterSize-1)"
         - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
-          value: "3"
+          value: "TODO: NUMBER-OF-PARTITIONS"
         - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
-          value: "3"
+          value: "TODO: ClusterSize"
         - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
-          value: "3"
+          value: "TODO: Replication Factor"
         volumeMounts:
         - name: data
           mountPath: /usr/local/zeebe/data

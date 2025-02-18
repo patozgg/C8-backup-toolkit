@@ -16,7 +16,7 @@ The procedure to connect on each storage are
 The documentation on the backup is
 https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/backup-and-restore/
 
-Check the [Backup procedure](doc/restore/README.md)
+Check the [Backup procedure](doc/backup/README.md)
 
 
 

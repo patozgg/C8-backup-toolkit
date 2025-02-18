@@ -160,20 +160,89 @@ green  open   operate-process-8.3.0_                    8hFENmo0TOCbtHWUweN-AA  
 
 The last section involves restoring each Zeebe PVC. A separate job is required for each instance.
 
-Attention: the script must be adapted
+Attention: the script must be adapted, one file must be created from the `zeebe-restore-job-XXXX.yaml` file
 
 * one file per node (depending on cluster size), and each file must have a unique `ZEEBE_BROKER_CLUSTER_NODEID` value
 * The version must be changed to be the same version as the cluster
-* the connection to the storage must be set correctly
-*  Each pod claims a PV according to the node
+* The connection to the storage must be set correctly
+* Each pod claims a PV according to the node
+* Number of partition, clusterSize,Replication factor must be set correctly
 
 
 > **Attention** : this configuration is crucial to run the restoration without issue
 
 The configuration has to be done once at the beginning and again when the server is updated to keep the restoration process on the same version number.
 
+## Creates files from the template
+Let say you have a cluster ClusterSize= 3.
 
-For example, configure the pod with these variables.
+**You must create 3 files from the template** `zeebe-restore-job-0.yaml`, `zeebe-restore-job-1.yaml`, `zeebe-restore-job-2.yaml`
+
+In each file, modify the  `ZEEBE_BROKER_CLUSTER_NODEID`
+The PV must be claimed according to the NODEID in **EACH FILE**
+
+
+File `zeebe-restore-job-0.yaml`:
+```
+        - name: ZEEBE_BROKER_CLUSTER_NODEID
+          value: "0"
+....
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-camunda-zeebe-0
+```
+
+File `zeebe-restore-job-1.yaml`:
+```
+        - name: ZEEBE_BROKER_CLUSTER_NODEID
+          value: "1"
+....
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-camunda-zeebe-1
+          
+```
+
+File `zeebe-restore-job-2.yaml`:
+```
+        - name: ZEEBE_BROKER_CLUSTER_NODEID
+          value: "2"
+....
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: data-camunda-zeebe-2
+```
+
+
+
+
+## Check all TODO
+
+Update each file and replace all TODO
+* Number of partitions
+* Image version
+* Replication Factor
+* ClusterSize
+
+
+Each pod must have the correct configuration regarding **partition count**, **cluster size**, and **replication factor**. These parameters pilot the retrieval.
+```
+        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
+          value: "3"
+
+```
+
+## Storage
+
+Check the Zeebe configuration, and update it.
+For example, for an Azure storage:
 
 ```
     - name: ZEEBE_BROKER_DATA_BACKUP_STORE
@@ -193,37 +262,14 @@ The backupId is retrieved from the same secret as Elasticsearch.
               key: backupTimeId
  ````
 
-Each pod must have the correct configuration regarding **partition count**, **cluster size**, and **replication factor**. These parameters pilot the retrieval.
-```
-        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
-          value: "3"
-        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
-          value: "3"
-        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
-          value: "3"
 
-```
 
-Finally, each yaml file has a unique configuration in terms of NODEID, starting at 0 and finishing at <ClusterSize-1>
-
-```
-        - name: ZEEBE_BROKER_CLUSTER_NODEID
-          value: "0"
-```
-
-The PV must be claimed according to the NODEID
-```
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: data-camunda-zeebe-0
-```
 
 # Restore Zeebe - the execution
 
 Run each pod one by one
 ```shell
-kubectl apply -f restore/zeebe-restore-job-0.yaml
+kubectl apply -f restore/zeebe-restore-job-XXXX.yaml
 ```
 Check logs on each pod.
 ```
