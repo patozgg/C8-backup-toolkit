@@ -1,0 +1,3 @@
+# Connection via IAM Policy
+
+IN PROGRESS TO ADAPT THIS DOCUMENTATION TO S3

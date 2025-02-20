@@ -21,7 +21,7 @@ The repository is configured in Elasticsearch, pointing to the container in Azur
 
 # Connection via an account name / account key
 
-Connect your storage using an [Account Name/ Account Key.md](AzureAccountName.md)
+Connect your storage using an [Account Name/Account Key](AzureAccountName.md)
 
 # Connection via an IAM policy
 

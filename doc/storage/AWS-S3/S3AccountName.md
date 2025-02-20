@@ -1,5 +1,9 @@
 # Connection via the Account Name / key
 
+
+IN PROGRESS TO ADAPT THIS DOCUMENTATION TO S3
+
+
 # 1. Zeebe
 
 ## Configuration
@@ -16,7 +20,7 @@ zeebe:
       value: zeebecontainer
 ````      
 
-> Note: the access key is created in the [Azure Prerequisite.md](AzurePrerequisite.md)  document
+> Note: the access key is created in the [Azure Prerequisite.md](S3Prerequisite)  document
 
  
 The azure `basepath` is the container name. Zeebe will create snapshots on that repository. It is not possible to give a path to the value, and the data will be stored at the root level.
