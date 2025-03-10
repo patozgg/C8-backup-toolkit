@@ -50,5 +50,6 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
+          # TODO VALUE-FROM-0-(ClusterSize-1) - check the PVC (claim name) name in your cluster
           claimName: data-camunda-zeebe-0
       restartPolicy: OnFailure

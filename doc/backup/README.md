@@ -1,17 +1,20 @@
 # backup
 
+# Preparation
+The preparation step must be followed. Check the [README.md](../../README.md)
 
+# Backup
 According to the documentation https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/backup-and-restore/, the serie of command to run are
 
 In this example, the backup ID is `12`
 
-# Optimize
+# 1. Optimize
 
-Port forward the service
+1.1 Port forward the service
 ````shell
 kubectl port-forward svc/camunda-optimize 8092:8092 -n camunda
 ````
-Start the backup
+1.2 Start the Optimize backup
 
 ````shell
 curl -X POST "http://localhost:8092/actuator/backups" \

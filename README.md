@@ -1,9 +1,19 @@
 # C8-backup-toolkit
 Documentation to configure the backup using S3, Azure, Minio 
 
-# Connect Zeebe to an external storage
+# Preparation : Connect the cluster to an external storage
 The C8 server will be connector to a storage to save the backup file.
 The storage maybe on Azure, S3, Google, Minio.
+
+The configuration is the following:
+* The container (S3, Azure, AWS) is created, and accessible.
+* Different repositories are created in Elastic Search (Operate, Tasklist, Optimize, ZeebeRecord)
+* The ElasticSearch's repositories are referenced in each component (Operate, Tasklist, Operate, Zeebe)
+* Zeebe referenced a container
+
+![Backup Configuration](doc/backup/ConfigurationBackup.png)
+Check the procedure step by step, according the storage
+
 
 The procedure to connect on each storage are 
 * [Azure](doc/storage/azure/README.md)

@@ -140,7 +140,7 @@ Access Elasticsearch, via a `port-forward` for example
 kubectl port-forward svc/camunda-elasticsearch 9200:9200 -n camunda
 ```
 
-Create a repository `zeeberecordrepository` and register the Azure container. it's possible to register a `base_path`, to save the content in a subfolder on the container 
+2.5 Create a repository `zeeberecordrepository` and register the Azure container. it's possible to register a `base_path`, to save the content in a subfolder on the container 
 
 ```shell
 curl -X PUT "http://localhost:9200/_snapshot/zeeberecordrepository" -H "Content-Type: application/json" \
@@ -154,7 +154,7 @@ curl -X PUT "http://localhost:9200/_snapshot/zeeberecordrepository" -H "Content-
 ```
 
 
-2.5 Create a repository `operaterepository`
+2.6 Create a repository `operaterepository`
 ```shell
 curl -X PUT "http://localhost:9200/_snapshot/operaterepository" -H "Content-Type: application/json" \
 -d '{
@@ -166,7 +166,7 @@ curl -X PUT "http://localhost:9200/_snapshot/operaterepository" -H "Content-Type
 }'
 ```
 
-2.6 Create a repository `tasklistrepository`
+2.7 Create a repository `tasklistrepository`
 
 ```shell
 curl -X PUT "http://localhost:9200/_snapshot/tasklistrepository" -H "Content-Type: application/json" \
@@ -179,7 +179,7 @@ curl -X PUT "http://localhost:9200/_snapshot/tasklistrepository" -H "Content-Typ
 }'
 ```
 
-2.7 Create a repository `optimizerepository`
+2.8 Create a repository `optimizerepository`
 
 ```shell
 curl -X PUT "http://localhost:9200/_snapshot/optimizerepository" -H "Content-Type: application/json" \
@@ -192,7 +192,7 @@ curl -X PUT "http://localhost:9200/_snapshot/optimizerepository" -H "Content-Typ
 }'
 ```
 
-2.8 Check creation
+2.9 Check creation
 
 Get all repositories, to verify the creation
 
@@ -201,7 +201,9 @@ curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 ```
 
 ##	Test the zeebe Record backup
-2.9 Run a backup on Zeebe Record
+2.10 Run a backup on Zeebe Record
+
+** Backup **
 
 ```shell
 curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/backup_1 -H 'Content-Type: application/json'   \
@@ -215,13 +217,13 @@ An answer {“accepted”:true}, and a folder is created on the container
 
 ** Restore**
 
-2.10 Check the existence of all zeebe-record indexes
+2.11 Check the existence of all zeebe-record indexes
 
 ```shell
 curl -X GET http://localhost:9200/_cat/indices/zeebe-record*?v
 ```
 
-2.11 Delete all indices
+2.12 Delete all indices
 
 ```shell
 curl -X DELETE http://localhost:9200/zeebe-record*?
@@ -229,7 +231,7 @@ curl -X DELETE http://localhost:9200/zeebe-record*?
 
 > ***Note***: the deletion may need to delete index per index
 
-2.12 Restore
+2.13 Restore
 
 ```shell
 curl -X POST http://localhost:9200/_snapshot/zeeberecordrepository/backup_1/_restore -H "Content-Type: application/json" -d '{ "indices": "*", "ignore_unavailable": true, "include_global_state": true }'
@@ -239,7 +241,7 @@ curl -X POST http://localhost:9200/_snapshot/zeeberecordrepository/backup_1/_res
 
 This backup is run on Operate. Operate will contact Elasticsearch to run the backup.
 
-2.13 Port forward the port number 9600 on operate
+2.14 Port forward the port number 9600 on operate
 
 ```shell
 kubectl port-forward svc/camunda-operate 9600:9600 -n camunda
@@ -248,7 +250,7 @@ kubectl port-forward svc/camunda-operate 9600:9600 -n camunda
 > **Note** on 8.5, the port to run the backup is 80, not 9600.
  
 
-2.14	Backup Operate
+2.15 Backup Operate
  
 Run the backup
 
@@ -256,7 +258,7 @@ Run the backup
 curl -X POST http://localhost:9600/actuator/backups -H 'Content-Type: application/json' -d '{ "backupId": 6}'
 ```
 
-2.15 Check the container
+2.16 Check the container
 
 ![Container after Operate backup.png](image/ElasticSearchOperateBackup.png)
 

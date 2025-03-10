@@ -4,11 +4,123 @@ This procedure explains the restoration procedure.
 
 Thanks to the project https://github.com/ManuelDittmar/backup-restore-demo
 
-# Stop all components
+# 1. Preparation
 
-The idea is to stop all components but keep the PCV.
+This preparation has to be done one time. It consist to create one restore file per ClusterSize.
+If you have clusterSize = 3, tou have 3 pods, then 3 PVC to restore.
 
-Run a
+
+> Attention: if you change the cluster configuration, adding one more pod for example, it is important to use the same parameter as you use during the backup. Let say that you add a pod on, may 10, but the backup you want to restore was created on May 5, with cluster size=3. 
+> This is crucial to use the 3 YAML files restore.
+ 
+
+## Prep.1 Creates files from the template
+
+Let say you have a cluster ClusterSize=3.
+
+**You must create 3 files from the template** `zeebe-restore-job-0.yaml`, `zeebe-restore-job-1.yaml`, `zeebe-restore-job-2.yaml`
+
+
+## Prep.2 Replace the image
+
+Check the image, and set the exact same image where the backup was performed:
+
+```
+        # TODO Adjust based on your Zeebe version
+        image: camunda/zeebe:1.0.0
+```
+
+
+## Prep.3 In each file, modify the  `ZEEBE_BROKER_CLUSTER_NODEID`
+
+<ClusterSize> files are created, named 0 to (ClusterSize-1). In each file, a unique number must be set, started at 0.
+
+```
+  - name: ZEEBE_BROKER_CLUSTER_NODEID
+    value: "TODO: VALUE-FROM-0-TO-(ClusterSize-1)"
+```
+
+For example,
+
+```
+  - name: ZEEBE_BROKER_CLUSTER_NODEID
+    value: "0"
+```
+
+## Prep.4 Partitions, ClusterSize, Replication factor
+
+Replace all others TODO with the correct information.
+Remember: these information must match the backup, not the current cluster if the configuration change between the backup and the current cluster.
+
+```
+        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
+          value: "TODO: NUMBER-OF-PARTITIONS"
+        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
+          value: "TODO: ClusterSize"
+        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
+          value: "TODO: Replication Factor"
+```
+
+## Prep.5 Check the PVC name
+
+The PV must be claimed according to the NODEID in **EACH FILE**
+
+```
+volumes:
+  - name: data
+    persistentVolumeClaim:
+    # TODO VALUE-FROM-0-(ClusterSize-1) - check the PVC (claim name) name in your cluster
+    claimName: data-camunda-zeebe-VALUE-FROM-0-TO-(ClusterSize-1)
+```
+
+for example, 
+
+```
+volumes:
+  - name: data
+    persistentVolumeClaim:
+    # TODO VALUE-FROM-0-(ClusterSize-1) - check the PVC (claim name) name in your cluster
+    claimName: data-camunda-zeebe-0
+
+```
+
+> Attention: the claimName may be different on your system, because the claim name contains the domain name. Check the claim via a kubetcl get pods on Zeebe
+
+## Prep.6  Storage
+
+Check the Zeebe configuration, and update it.
+
+For example, for an Azure storage:
+```
+    - name: ZEEBE_BROKER_DATA_BACKUP_STORE
+      value: "AZURE"
+    - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_CONNECTIONSTRING
+      value: Defa.....net
+    - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_BASEPATH
+      value: zeebecontainer
+```
+
+# Restore
+
+## 1. backupID
+
+The backupId is retrieved from the same secret as Elasticsearch.
+````
+        - name: ZEEBE_RESTORE_FROM_BACKUP_ID
+          valueFrom:
+            secretKeyRef:
+              name: backup-timeid
+              key: backupTimeId
+ ````
+
+
+
+
+## 2. Get the configuration
+
+> Attentio: what is important is the values when the backup was created. Assuming the values does not changed.
+
+Run a get pods to inspect the current situation
 
 ```shell
 kubectl get pods
@@ -24,7 +136,6 @@ camunda-zeebe-0                         1/1     Running   0          3m19s
 camunda-zeebe-1                         1/1     Running   0          3m19s
 camunda-zeebe-2                         1/1     Running   0          3m19s
 camunda-zeebe-gateway-d7c97f64c-wkdfq   1/1     Running   0          3m20s
-
 ```
 
 And check how many instances are on each component.
@@ -43,8 +154,8 @@ Check if all repositories exist in Elasticsearch. This configuration must be exe
 curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 ```
 
-# Scale down components
-
+## 3. Scale down components
+The idea is to stop all components but keep the PCV.
 ```shell
 kubectl scale sts/camunda-zeebe --replicas=0
 kubectl scale deploy/camunda-zeebe-gateway --replicas=0
@@ -53,7 +164,7 @@ kubectl scale deploy/camunda-tasklist --replicas=0
 kubectl scale deploy/camunda-optimize --replicas=0
 ```
 
-Only Elasticsearch is up and running.
+Only Elasticsearch is up and running now.
 
 ```shell
 kubectl get pods
@@ -65,7 +176,7 @@ camunda-elasticsearch-master-2          1/1     Running   0          3m19s
 ```
 
 
-# Delete all indexes in Elastic search
+## 4. Delete all indexes in Elastic search
 When Operate, Tasklist, and Optimize start, they create indexes. It must be purged.
 
 In the k8 folder, an es-delete-all-indices.yaml file is present. This Kubernetes file creates a pod that executes this deletion.
@@ -80,7 +191,8 @@ When the deletion is performed, the pod will stop and move to the state "Complet
 Kubernetes get pods
 es-delete-all-indices-job-bs2h9   0/1     Completed   0          18s
 ```
-Remove the pod
+
+## 5. Remove the deletion pod
 
 ```shell
 kubectl delete -f es-delete-all-indices.yaml
@@ -93,7 +205,7 @@ health status index uuid pri rep docs.count docs.deleted store.size pri.store.si
 ```
 The list must be empty.
 
-# Restore the backup
+## 6. Setup the backup ID to restore
 
 Put the backup ID to restore in a secret. We want to restore the backupID 12
 
@@ -101,6 +213,7 @@ Put the backup ID to restore in a secret. We want to restore the backupID 12
 kubectl create secret generic backup-timeid --from-literal=backupTimeId=12
 ```
 
+## 7. Restore Elasticsearch backup
 Run the pod; the script is present in `doc/restore/k8`
 
 ```shell
@@ -113,12 +226,13 @@ Monitor the execution. At the end, the pod status changed to Completed
 kubernetes get pods
 es-snapshot-restore-job-pdvzz   0/1     Completed   0          18s
 ```
-Remove the pod
+## 8. Remove the restore pod
 
 ```shell
 kubectl delete -f es-snapshot-restore.yaml
 ```
-Check-in Elasticsearch: indexes must be restored.
+
+## 9. Check Elasticsearch: indexes must be restored.
 
 ```shell
 curl -X GET "http://localhost:9200/_cat/indices?v"
@@ -153,124 +267,17 @@ green  open   operate-process-8.3.0_                    8hFENmo0TOCbtHWUweN-AA  
 > repositories="operaterepository optimizebackup tasklistrepository zeeberecordrepository"
 > ```
 > This list may be adapted according to the repositories created in Elasticsearch. The current values are those created in the backup procedure.
->
-
-
-# Restore Zeebe - the configuration
-
-The last section involves restoring each Zeebe PVC. A separate job is required for each instance.
-
-Attention: the script must be adapted, one file must be created from the `zeebe-restore-job-XXXX.yaml` file
-
-* one file per node (depending on cluster size), and each file must have a unique `ZEEBE_BROKER_CLUSTER_NODEID` value
-* The version must be changed to be the same version as the cluster
-* The connection to the storage must be set correctly
-* Each pod claims a PV according to the node
-* Number of partition, clusterSize,Replication factor must be set correctly
-
-
-> **Attention** : this configuration is crucial to run the restoration without issue
-
-The configuration has to be done once at the beginning and again when the server is updated to keep the restoration process on the same version number.
-
-## Creates files from the template
-Let say you have a cluster ClusterSize= 3.
-
-**You must create 3 files from the template** `zeebe-restore-job-0.yaml`, `zeebe-restore-job-1.yaml`, `zeebe-restore-job-2.yaml`
-
-In each file, modify the  `ZEEBE_BROKER_CLUSTER_NODEID`
-The PV must be claimed according to the NODEID in **EACH FILE**
-
-
-File `zeebe-restore-job-0.yaml`:
-```
-        - name: ZEEBE_BROKER_CLUSTER_NODEID
-          value: "0"
-....
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: data-camunda-zeebe-0
-```
-
-File `zeebe-restore-job-1.yaml`:
-```
-        - name: ZEEBE_BROKER_CLUSTER_NODEID
-          value: "1"
-....
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: data-camunda-zeebe-1
-          
-```
-
-File `zeebe-restore-job-2.yaml`:
-```
-        - name: ZEEBE_BROKER_CLUSTER_NODEID
-          value: "2"
-....
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: data-camunda-zeebe-2
-```
 
 
 
+## 10.  Restore Zeebe 
 
-## Check all TODO
+Run each kubernetes file,  one by one
 
-Update each file and replace all TODO
-* Number of partitions
-* Image version
-* Replication Factor
-* ClusterSize
-
-
-Each pod must have the correct configuration regarding **partition count**, **cluster size**, and **replication factor**. These parameters pilot the retrieval.
-```
-        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
-          value: "3"
-        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
-          value: "3"
-        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
-          value: "3"
-
-```
-
-## Storage
-
-Check the Zeebe configuration, and update it.
-For example, for an Azure storage:
-
-```
-    - name: ZEEBE_BROKER_DATA_BACKUP_STORE
-      value: "AZURE"
-    - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_CONNECTIONSTRING
-      value: Defa.....net
-    - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_BASEPATH
-      value: zeebecontainer
-```
-The backupId is retrieved from the same secret as Elasticsearch.
-
-````
-        - name: ZEEBE_RESTORE_FROM_BACKUP_ID
-          valueFrom:
-            secretKeyRef:
-              name: backup-timeid
-              key: backupTimeId
- ````
-
-
-
-
-# Restore Zeebe - the execution
-
-Run each pod one by one
 ```shell
 kubectl apply -f restore/zeebe-restore-job-XXXX.yaml
 ```
+
 Check logs on each pod.
 ```
 2025-02-15 02:19:22.364 [] [] [] INFO 
@@ -284,7 +291,7 @@ Check logs on each pod.
 Restoration complete.
 ```
 
-# Scale back the application
+## 11. Scale back the application
 
 Use the value saved during the exploration to restart all components with the correct value.
 
