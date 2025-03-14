@@ -12,6 +12,7 @@ Give a name like `pierreyvesstorageaccount`, choose a resource Group and select 
 
 ![Detail of the storage account](image/AzureDetailStorageAccount.png)
 
+ 
 Access the key on the left menu, section `Security + networking`, section `access keys`
 
 ![Azure Access key.png](image/AzureAccessKey.png)
