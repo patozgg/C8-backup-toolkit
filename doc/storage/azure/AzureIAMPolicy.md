@@ -75,16 +75,26 @@ spec:
 
 Note: the service account does not declare anything. The relation is created in the AzureIdentityBinding
 
+**AzureServiceAccount.yaml**
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: AzureContainerServiceAccount  # Name of your service account
-
 ```
+
+Execute this command
+
+```shell
+kubectl apply -f AzureServiceAccount.yaml
+```
+
+Doing that, the service account is a defaut value for all pods in the cluster.
+
 # Update Your Kubernetes Pod to Use the Service Account
 
-Your pod's configuration should reference the Kubernetes service account associated with the Azure Managed Identity. 
+This step is not mandatory, because the service is now by default on all pods. It's possible to register explicitaly it on Zeebe
+ 
 
 ```yaml
 zeebe:
