@@ -102,6 +102,17 @@ zeebe:
     broker: AzureContainerAServiceAccount
 ```
 
+The container must be referenced in Zeebe
+
+```yaml
+zeebe:
+  env:
+    - name: ZEEBE_BROKER_DATA_BACKUP_STORE
+      value: "AZURE"
+    - name: ZEEBE_BROKER_DATA_BACKUP_AZURE_BASEPATH
+      value: zeebecontainer
+````      
+
 Doing that, 
 
 1. The pod use the serviceAccountName `AzureContainerAServiceAccount`
