@@ -78,6 +78,35 @@ Under folder 1, a folder 8 is visible (8 is the backup ID)
 2.1 create the configuration
 
 The configuration is
+
+> Attention: Bitnami helm chart change and the impact in 11.2.2 and after
+> 
+
+From 11.2.2 and after
+
+```yaml
+elasticsearch:
+  initScripts:
+    init-keystore.sh: |
+      #!/bin/bash
+      set -e
+      echo "Adding Azure access keys to Elasticsearch keystore..."
+      echo "$AZURE_ACCOUNT" | elasticsearch-keystore add -f -x azure.client.default.account
+      echo "$AZURE_KEY" | elasticsearch-keystore add -f -x azure.client.default.key
+  extraConfig:
+    azure.client.default.endpoint: "${AZURE_END_POINT}"
+
+  extraEnvVars:
+    - name: AZURE_ACCOUNT
+      value: pierreyvesstorageaccount
+    - name: AZURE_KEY
+      value: eFw.......==
+    - name: AZURE_END_POINT
+      value: core.windows.net
+```      
+Before 11.2.2 (until 11.2.1):
+
+
 ```yaml
 elasticsearch:
   initScripts:
@@ -102,6 +131,8 @@ elasticsearch:
     - name: AZURE_END_POINT
       value: core.windows.net
 ```      
+
+
 
 By doing that, you connect Elastic search to Azure.
 
