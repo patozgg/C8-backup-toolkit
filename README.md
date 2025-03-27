@@ -34,3 +34,6 @@ Check the [Backup procedure](doc/backup/README.md)
 
 The restore is complex, because it's not only based on REST API. Zeebe has a specific tool to restore the data.
 Check the [Restoration procedure](doc/restore/README.md)
+
+# Todo
+Check the [Todo.md](Todo.md) file
