@@ -2,19 +2,23 @@ package io.camunda.blueberry.connect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.blueberry.connect.toolbox.WebActuator;
 import io.camunda.blueberry.config.BlueberryConfig;
+import io.camunda.blueberry.connect.toolbox.WebActuator;
 import io.camunda.blueberry.exception.OperationException;
 import io.camunda.blueberry.operation.OperationLog;
 import io.camunda.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.ZeebeClientConfiguration;
 import io.camunda.zeebe.client.api.response.Topology;
 import io.camunda.zeebe.protocol.impl.encoding.BackupStatusResponse;
+import io.camunda.zeebe.spring.client.configuration.ZeebeClientConfigurationImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.Method;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -26,22 +30,71 @@ import java.util.stream.StreamSupport;
 @Component
 public class ZeebeConnect extends WebActuator {
     private final ObjectMapper objectMapper;
-    private final ZeebeClient zeebeClient;
+
+
+    private ZeebeClient myZeebeClient;
+
+
+    private final ZeebeClientConfigurationImpl zeebeClientConfiguration;
     Logger logger = LoggerFactory.getLogger(ZeebeConnect.class);
     private final BlueberryConfig blueberryConfig;
     private final RestTemplate restTemplate;
-    private ZeebeConnect zeebeConnect;
 
-    public ZeebeConnect(BlueberryConfig blueberryConfig, RestTemplate restTemplate, ObjectMapper objectMapper, ZeebeClient zeebeClient) {
+    public ZeebeConnect(BlueberryConfig blueberryConfig, RestTemplate restTemplate, ObjectMapper objectMapper, ZeebeClientConfigurationImpl zeebeClientConfiguration) {
         super(restTemplate);
         this.blueberryConfig = blueberryConfig;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.zeebeClient = zeebeClient;
+        this.zeebeClientConfiguration = zeebeClientConfiguration;
     }
 
-    public void connection() {
+    private long lastTentativeConnection=0;
 
+    public boolean connection() {
+        boolean isConnected = isConnected();
+        logger.info("Connection: already connected {} connect to Grpc[{}}]", isConnected, zeebeClientConfiguration.getGrpcAddress());
+
+        if (isConnected)
+            return true;
+
+        // Update the last connection
+        lastTentativeConnection=System.currentTimeMillis();
+
+        try {
+            this.myZeebeClient = ZeebeClient.newClient(zeebeClientConfiguration);
+            final Topology topology = myZeebeClient.newTopologyRequest().send().join();
+            return true;
+        }catch (Exception e) {
+            logger.error("During Zeebe connection",e);
+            return false;
+        }
+    }
+
+    public void disconnect() {
+    }
+
+    /**
+     * Return true if the Zeebe client is connected
+     *
+     * @return
+     */
+    public boolean isConnected() {
+
+        try {
+            final Topology topology = myZeebeClient.newTopologyRequest().send().join();
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean activateConnection() {
+        if (isConnected())
+            return true;
+        if (System.currentTimeMillis()-lastTentativeConnection<5000)
+            return false;
+        return connection();
     }
 
     /* ******************************************************************** */
@@ -49,20 +102,52 @@ public class ZeebeConnect extends WebActuator {
     /*  getInformation                                                      */
     /*                                                                      */
     /* ******************************************************************** */
-    public class ClusterInformation{
+    public class ClusterInformation {
         public int clusterSize;
         public int partitionsCount;
         public int replicationFactor;
     }
+
     public ClusterInformation getClusterInformation() {
-        final Topology topology = zeebeClient.newTopologyRequest().send().join();
+        final Topology topology = myZeebeClient.newTopologyRequest().send().join();
         ClusterInformation clusterInformation = new ClusterInformation();
-        clusterInformation.clusterSize= topology.getClusterSize();
-        clusterInformation.partitionsCount= topology.getPartitionsCount();
-        clusterInformation.replicationFactor= topology.getReplicationFactor();
+        clusterInformation.clusterSize = topology.getClusterSize();
+        clusterInformation.partitionsCount = topology.getPartitionsCount();
+        clusterInformation.replicationFactor = topology.getReplicationFactor();
         return clusterInformation;
     }
 
+    public ZeebeClientConfiguration getZeebeConfiguration() {
+        return zeebeClientConfiguration;
+    }
+
+    public Map<String, Object> getParameters() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("zeebeIsConnected", isConnected());
+        for (Method method : zeebeClientConfiguration.getClass().getMethods()) {
+            if (method.getName().startsWith("get") &&
+                    method.getParameterCount() == 0 &&
+                    !method.getReturnType().equals(void.class)) {
+                String propertyName = lowerCaseFirstLetter(method.getName().substring(3));
+                try {
+                    Object value = method.invoke(zeebeClientConfiguration);
+                    if (value instanceof Duration)
+                        parameters.put(propertyName, ((Duration) value).toString());
+                    else
+                        parameters.put(propertyName, value);
+                } catch (Exception e) {
+                    parameters.put(propertyName, "ACCESS_DENIED");
+                }
+            }
+        }
+        return parameters;
+    }
+
+    private String lowerCaseFirstLetter(String str) {
+        if (str == null || str.isEmpty())
+            return str;
+        return str.substring(0, 1).toLowerCase() + str.substring(1);
+    }
     /* ******************************************************************** */
     /*                                                                      */
     /*  Resume and pause                                                    */
@@ -81,10 +166,13 @@ public class ZeebeConnect extends WebActuator {
 
     /**
      * Get the exporter status
+     *
      * @return true: all exporter are ENABLED. False: one is disabled. null: impossible to say (list is empty)
      * @throws OperationException
      */
     public Boolean getExporterStatus() throws OperationException {
+        if (! activateConnection())
+            throw OperationException.getInstanceFromCode(OperationException.BLUEBERRYERRORCODE.NO_ZEEBE_CONNECTION, "No connection");
         try {
             ResponseEntity<JsonNode> listExporters = restTemplate.getForEntity(blueberryConfig.getZeebeActuatorUrl() + "/actuator/exporters", JsonNode.class);
 
@@ -93,7 +181,7 @@ public class ZeebeConnect extends WebActuator {
                 boolean isRunning = true;
                 for (JsonNode exporter : listExportersNode) {
                     String status = exporter.path("status").asText();
-                    if ("DISABLED".equals(status))
+                    if ("DISABLED" .equals(status))
                         isRunning = false;
                 }
                 return isRunning;
@@ -121,7 +209,7 @@ public class ZeebeConnect extends WebActuator {
         } else {
             // For any non-2xx status, log the error and resume exporting
             logger.error("Backup {} failed with status {}: {}", backupId, backupResponse.getStatusCode(), backupResponse.getBody());
-            zeebeConnect.resumeExporting(operationLog);
+            resumeExporting(operationLog);
         }
     }
 
@@ -149,7 +237,7 @@ public class ZeebeConnect extends WebActuator {
                     JsonNode root = objectMapper.readTree(response.getBody());
                     String state = root.path("state").asText();
 
-                    if ("COMPLETED".equalsIgnoreCase(state)) {
+                    if ("COMPLETED" .equalsIgnoreCase(state)) {
                         logger.info("Backup {} is completed. Exiting loop.", backupId);
                         break;
                     }
@@ -160,9 +248,7 @@ public class ZeebeConnect extends WebActuator {
         }
     }
 
-    public ZeebeInformation getInformation() {
-        return new ZeebeInformation();
-    }
+
 
 
     /* ******************************************************************** */
@@ -206,9 +292,5 @@ public class ZeebeConnect extends WebActuator {
         }
     }
 
-    public class ZeebeInformation {
-        public int clusterSize;
-        public int numberOfPartitions;
-        public int replicaFactor;
-    }
+
 }

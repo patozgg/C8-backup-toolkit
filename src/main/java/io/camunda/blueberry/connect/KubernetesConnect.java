@@ -2,10 +2,7 @@ package io.camunda.blueberry.connect;
 
 
 import io.camunda.blueberry.config.BlueberryConfig;
-import io.camunda.blueberry.exception.KubernetesException;
-import io.camunda.blueberry.exception.OperationException;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.client.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,8 +16,8 @@ import java.util.List;
 public class KubernetesConnect {
     Logger logger = LoggerFactory.getLogger(KubernetesConnect.class);
 
+    private static boolean NOT_IMPLEMENTED  = true;
     BlueberryConfig blueberryConfig;
-    KubernetesClient client = null;
 
     KubernetesConnect(BlueberryConfig blueberryConfig) {
         this.blueberryConfig = blueberryConfig;
@@ -32,7 +29,13 @@ public class KubernetesConnect {
      * @return connection to the application
      */
     public OperationResult connection() {
+
+
         OperationResult result = new OperationResult();
+
+        return result;
+
+        /*
         try {
            // connectExplicitaly();
 
@@ -51,11 +54,12 @@ public class KubernetesConnect {
             result.details = "Can't connect to Kubernetes";
         }
         return result;
+         */
     }
 
 
     public boolean isConnected() {
-        return client != null;
+        return false; /* client != null; */
     }
 
     /**
@@ -126,6 +130,7 @@ public class KubernetesConnect {
      * @param nameSpace
      * @return
      */
+     /**
     public OperationResult getRepositoryNameV2(CamundaApplication.COMPONENT component, String nameSpace) {
         OperationResult operationResult = new OperationResult();
         List<Pod> pods = null;
@@ -142,6 +147,7 @@ public class KubernetesConnect {
         }
         return operationResult;
     }
+      **/
 
     /* List all pods containing the name <podName> in a given namespace.
      * @param podName filter pods by the name (contains: a deployment add ID after the name)
@@ -149,6 +155,8 @@ public class KubernetesConnect {
      * @return list of pods
      * @throws KubernetesException
      */
+
+    /**
     private List<Pod> getContainerInformation(String podName, String nameSpace) throws KubernetesException {
 
         try {
@@ -193,4 +201,5 @@ public class KubernetesConnect {
             throw new RuntimeException("Failed to retrieve token", e);
         }
     }
+     **/
 }

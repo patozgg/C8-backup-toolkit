@@ -6,8 +6,9 @@
     <!-- 3.2.0 using Zeebe 8.5.x/ SporingBoot 3.3.x -->
     <!-- 3.4.0 Multi tenant access -->
     <groupId>io.camunda.community</groupId>
-    <artifactId>c8-backup-toolkit</artifactId>
+    <artifactId>blueberry</artifactId>
     <version>1.0.0</version>
+    <packaging>jar</packaging>
 
     <properties>
         <java.version>21</java.version>
@@ -64,12 +65,6 @@
             <version>${version.zeebe}</version>
         </dependency>
 
-        <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
-        <dependency>
-            <groupId>io.camunda.spring</groupId>
-            <artifactId>spring-boot-starter-camunda-operate</artifactId>
-            <version>${version.operate-client}</version>
-        </dependency>
 
 
         <!-- https://mvnrepository.com/artifact/io.camunda.connector/connector-validation -->
@@ -267,7 +262,7 @@
                     <classifier>exec</classifier>
                     <mainClass>io.camunda.BlueberryApplication</mainClass>
                     <image>
-                        <name>ghcr.io/camunda-community-hub/c8-blueberry-runtime:latest</name>
+                        <name>ghcr.io/camunda-community-hub/blueberry:latest</name>
                     </image>
                 </configuration>
             </plugin>

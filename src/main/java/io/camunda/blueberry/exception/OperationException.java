@@ -31,13 +31,18 @@ public class OperationException extends Exception {
         this.message = message;
     }
 
-    /**
-     * Decode the error from an exception
-     * Expected format: 400 : "{"message":"Cannot process backup requests. No backup store is configured. To use this feature, configure backup in broker configuration."}"
-     *
-     * @param blueberryErrorCode code where the error come from
-     * @param e                  the exception
-     */
+    public static OperationException getInstanceFromCode(BLUEBERRYERRORCODE blueberryErrorCode, String message) {
+        return new OperationException(blueberryErrorCode, 500, message, "");
+
+    }
+
+        /**
+         * Decode the error from an exception
+         * Expected format: 400 : "{"message":"Cannot process backup requests. No backup store is configured. To use this feature, configure backup in broker configuration."}"
+         *
+         * @param blueberryErrorCode code where the error come from
+         * @param e                  the exception
+         */
     public static OperationException getInstanceFromException(BLUEBERRYERRORCODE blueberryErrorCode, Exception e) {
 
         String cause = e.getMessage();
@@ -91,5 +96,5 @@ public class OperationException extends Exception {
 
     }
 
-    public enum BLUEBERRYERRORCODE {BACKUP_LIST, BACKUP, CHECK, KUBERNETES_CLIENT, ELASTICSEARCH_CLIENT,STATUS_EXPORTER}
+    public enum BLUEBERRYERRORCODE {BACKUP_LIST, BACKUP, CHECK, KUBERNETES_CLIENT, ELASTICSEARCH_CLIENT,STATUS_EXPORTER, NO_ZEEBE_CONNECTION}
 }

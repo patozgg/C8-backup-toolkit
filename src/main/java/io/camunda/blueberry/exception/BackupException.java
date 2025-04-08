@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class BackupException extends OperationException {
 
-    private final long backupId;
+    private final Long backupId;
     private final CamundaApplication.COMPONENT component;
 
     public BackupException(CamundaApplication.COMPONENT component, int status, String error, String message, Long backupId) {

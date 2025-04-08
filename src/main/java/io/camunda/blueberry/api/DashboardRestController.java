@@ -3,7 +3,7 @@ package io.camunda.blueberry.api;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.camunda.blueberry.connect.BackupInfo;
 import io.camunda.blueberry.connect.ZeebeConnect;
-import io.camunda.blueberry.config.ExplorationCluster;
+import io.camunda.blueberry.platform.ExplorationCluster;
 import io.camunda.blueberry.operation.OperationLog;
 import io.camunda.blueberry.operation.backup.BackupJob;
 import io.camunda.blueberry.operation.backup.BackupManager;

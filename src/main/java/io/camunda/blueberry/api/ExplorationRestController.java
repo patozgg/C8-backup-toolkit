@@ -4,7 +4,7 @@ package io.camunda.blueberry.api;
 import io.camunda.blueberry.connect.KubernetesConnect;
 import io.camunda.blueberry.connect.OperationResult;
 import io.camunda.blueberry.config.BlueberryConfig;
-import io.camunda.blueberry.config.ExplorationCluster;
+import io.camunda.blueberry.platform.ExplorationCluster;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

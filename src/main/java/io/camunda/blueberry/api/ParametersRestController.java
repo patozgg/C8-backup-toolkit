@@ -1,6 +1,7 @@
 package io.camunda.blueberry.api;
 
 import io.camunda.blueberry.config.BlueberryConfig;
+import io.camunda.blueberry.connect.ZeebeConnect;
 import io.camunda.blueberry.platform.PlatformManager;
 import io.camunda.blueberry.platform.rule.Rule;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +26,9 @@ public class ParametersRestController {
     @Autowired
     private BlueberryConfig blueberryConfig;
 
+    @Autowired
+    private ZeebeConnect zeebeConnect;
+
     /**
      * Check the system
      * Does Zeebe declare a container? A Type storage?
@@ -35,7 +40,10 @@ public class ParametersRestController {
     public Map<@NotNull String, Object> getAll() {
         try {
             logger.debug("Rest [/api/parameters/getall]");
-            return blueberryConfig.getAll();
+            Map<String,Object> allParameters = new HashMap<>();
+            allParameters.putAll(blueberryConfig.getAll());
+            allParameters.putAll(zeebeConnect.getParameters());
+            return allParameters;
 
         } catch (Exception e) {
             throw new RuntimeException(e);

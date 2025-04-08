@@ -108,6 +108,24 @@ class Parameters extends React.Component {
                 <div className="row" style={{marginTop: "10px"}}>
                     <div className="col-md-2">
                         <TextInput
+                            id="zeebeIsConnected"
+                            labelText="zeebeIsConnected"
+                            value={this.state.parameters.zeebeIsConnected}
+                            readOnly
+                        />
+                    </div>
+                    <div className="col-md-2">
+                        <TextInput
+                            id="grpcAddress"
+                            labelText="GrpcAddress"
+                            value={this.state.parameters.grpcAddress}
+                            readOnly
+                        />
+                    </div>
+                </div>
+                <div className="row" style={{marginTop: "10px"}}>
+                    <div className="col-md-2">
+                        <TextInput
                             id="kubeConfig"
                             labelText="kubeConfig"
                             value={this.state.parameters.kubeConfig}

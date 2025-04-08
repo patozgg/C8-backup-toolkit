@@ -1,0 +1,94 @@
+blueberry:
+  optimizeActuatorUrl: http://localhost:9603
+  operateActuatorUrl: http://localhost:9601
+  tasklistActuatorUrl: http://localhost:9602
+  zeebeActuatorUrl: http://localhost:9600
+  kubeConfigWindows: \\wsl$\Ubuntu\home\pym\config
+  kubeConfig2: \\wsl.localhost\Ubuntu\home\pym\.kube\config
+  elasticsearchurl: http://localhost:9200
+
+  # This information are temporary. They must come from the pod itself
+  operateRepository: operaterepository
+  tasklistRepository: tasklistrepository
+  optimizeRepository : optimizerepository
+  zeebeRepository: zeeberecordrepository
+
+  kubernetes:
+    token: gcloud
+    masterUrl: https://34.139.199.129
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVMRENDQXBTZ0F3SUJBZ0lRQmZFMUdpWTZYUmdaQTNRU25vc3pvVEFOQmdrcWhraUc5dzBCQVFzRkFEQXYKTVMwd0t3WURWUVFERXlSak4yTTJaRFprWkMxbE0ySXpMVFF5WkRBdE9ERXlNaTFpWkRoaVpHUXdPR1EyTVdZdwpJQmNOTWpVd016RTFNREEwTXpBNFdoZ1BNakExTlRBek1EZ3dNVFF6TURoYU1DOHhMVEFyQmdOVkJBTVRKR00zCll6WmtObVJrTFdVellqTXROREprTUMwNE1USXlMV0prT0dKa1pEQTRaRFl4WmpDQ0FhSXdEUVlKS29aSWh2Y04KQVFFQkJRQURnZ0dQQURDQ0FZb0NnZ0dCQUptZUI4aTdCOXBZR243TUZlTFV3NkhTVGQwRjlQaXVuZTUxV3NZUQp6S1Z1UVFJeWdHbndjZmM4NHZUL09VYWdTbkZ5ZVEveWN4Qnk4c2I0eUVidnU3MXVUekN4TXZXZGlOS1hkdFhkClJRYWplb1AyVC8yOUtTdlh1ZGtYcmY3OVJ1cEF3azI3aGJYU0RXaWsyR05DTWxaQXpOM044UmpQRjN6U25KQ3AKRXBqRjJmaWYvenU4SS92WTRUQUZEVWlVVjlVc0pOZzdtRnpSNE5lQVZ1NjkrVWxkc1Q3K2hkcUtmSVZhVmZ0bgp6dXNiYVNpWGx6eDRmaDc0R2VxR3VBelo2M1BmN2thQlMvUkxzenJvakJra3dNcGNrVEZ3ZEYvRGFIZ01pbkpsClRtbnVUeFl4OXFRQm9UR0pqVHFXZThML0JVR2xmTVNBelM2ellaVmhZT05jczk3K3lFUEF0VEEyVjJGcWRQdlgKYWlYQ1AyanNPaGs3QnlmWmM2cmFpYjJlQW5SM2lsREhRd3pONFJtNW55aU5Gb3A1QzN4cnRFYURvVU9KSGh4QQppK3oycDRxSjRPSHBkVzNqc3F1MUhLTFpaN3F3eU54UmNveStPUlBKdklub1Yza3NvaEh6OGJUSDRwQlhGYlVGCjJPcTRhRm9mREJHKzVWVjJiaWdzODhsOFd3SURBUUFCbzBJd1FEQU9CZ05WSFE4QkFmOEVCQU1DQWdRd0R3WUQKVlIwVEFRSC9CQVV3QXdFQi96QWRCZ05WSFE0RUZnUVVZQmp5aDR4QVRZeVEvUDJaVENqRXBpL3BBclF3RFFZSgpLb1pJaHZjTkFRRUxCUUFEZ2dHQkFKUFZPcmRCOWJYY1VVd1pVbjZmeW1BN1ByK0o1NGJKU0VTdW1LVUlqckFoCkdPNVJXYm5TaDhCYTdUNktJMmtuTEhwZVJDdExmVVBOV1YwMDBSSitGZVZkQ1BrRVErNFpuMDhSL1NwcStpengKZ0R4UjRBUG5waWZqWHVDRVF1UG93NlpLZHU4MFJYQm9VbHpFT2VmRE5vY0dZbnNWODlhQXBCV1pKbXZVa3ZNegpmVnlqOHhFejcvdmV0aTBlMjY4dW1RWDR5alNVUDhLb1gwMmFtSTBhV3lXL2ozeDNkaUpyYXJsdmJRai9vUGNaCnU4ZTRObENxR1IzN0N2YVpybk9wTHJiQm1TZTBOSTdBRUd5ajlKRzJjbmpvUnkrN1U3NzdHQlA2V0RXaEV5M3kKTW1oRHRwNGkwVWFlYzNCcWpQano0RllJVjUvb3cva3U0VFBmMjlhbmllTVZiVmpuT1VlTGtaRVZSZzd4bE5QRwpUNm5SZzBoU09TZHJlMU9raisrY1NtdUFlQXBwOEh6eGZ6TzE1YzBCQmhXMyt2T1RhRk1GZEVvSlNTdjZySzBTCmhya0lzR2RXamRRWlAzbDRNbDZJUEtjTzdQanA2YWEyNHlWcDR3Z3AvTll6dERObXdEY2kzRUpkdjRNTDVxUHEKdWYwREhTYU5xSkdGcndJVXZ1RHpOUT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    name: gke_pierre-yves_us-east1-b_clu13-mar
+
+  # When repository need to be created, then a base path is used. All based path used
+  elasticsearch:
+    operateContainerBasePath: /operate
+    tasklistContainerBasePath: /tasklist
+    optimizeContainerBasePath: /optimize
+    zeebeRecordContainerBasePath: /zeeberecord
+    # ZeebeRecord need a backup. Here is the name of the backup to be created
+    zeebeRecordRepository: camunda_zeebe_records_backup
+    zeebeRecordBasePath: zeeberecordbackup
+
+    # Define the container used by Zeebe and by ElasticSearch
+  container:
+    containerType: azure
+    azure:
+      containerName: "elasticsearchcontainer"
+    s3:
+      bucket: "joeymanagementbucket"
+      region: "us-east-2"
+
+
+
+server:
+  port: 9082
+
+# List of port to access
+# kubectl port-forward svc/camunda-zeebe-gateway 26500:26500 -n camunda
+# kubectl port-forward svc/camunda-zeebe-gateway 9600:9600 -n camunda
+# kubectl port-forward svc/camunda-operate 8081:80 -n camunda
+# kubectl port-forward svc/camunda-tasklist 8082:80 -n camunda
+# kubectl port-forward svc/camunda-elasticsearch 9200:9200 -n camunda
+# port forward component acuator
+# kubectl port-forward svc/camunda-operate 9601:9600 -n camunda
+# kubectl port-forward svc/camunda-tasklist 9602:9600 -n camunda
+# kubectl port-forward svc/camunda-optimize 9603:8092 -n camunda
+# -------------------- Self Manage
+camunda:
+  client:
+    mode: selfmanaged
+    zeebe:
+      enabled: false
+      gatewayUrl: http://localhost:26500
+      grpc-address: http://localhost-AAAA:26500
+
+      preferRestOverGrpc: false
+      executionThreads: 200
+      defaults:
+        maxJobsActive: 58
+
+  tasklist:
+    enabled: false
+operate:
+  client:
+    profile: simple
+    enabled: true
+    base-url: http://localhost:8081
+    session-timeout: PT10M
+    username: demo
+    password: demo
+
+
+
+logging.level.root: INFO
+
+
+# return message with BAD_REQUEST to the client
+server.error.include-message: always
+
+# Spring Boot Configuration
+spring.application.name: Blueberry
+
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

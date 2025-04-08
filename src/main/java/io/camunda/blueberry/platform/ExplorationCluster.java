@@ -1,10 +1,11 @@
-package io.camunda.blueberry.config;
+package io.camunda.blueberry.platform;
 
 
+import io.camunda.blueberry.config.BlueberryConfig;
 import io.camunda.blueberry.connect.*;
 import io.camunda.blueberry.exception.OperationException;
-import io.camunda.blueberry.platform.PlatformManager;
 import io.camunda.blueberry.platform.rule.Rule;
+
 import io.camunda.blueberry.platform.rule.RuleOperateRepository;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -62,9 +65,21 @@ public class ExplorationCluster {
 
     @PostConstruct
     public void postConstruct() {
-        executeLongExploration();
+        logger.info("Starting exploration cluster in background");
+        // Run this in a different thread, because if it failed, the initialization stops
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.submit(() -> initialStartup());
+
+        executor.shutdown(); // Optional: stop the executor after task
     }
 
+    private void initialStartup() {
+        logger.info("ExplorationCluster: start the application ");
+        zeebeConnect.connection();
+
+        executeLongExploration();
+    }
     private void executeLongExploration() {
         executeShortExploration();
         refreshCheckRules();
@@ -157,7 +172,7 @@ public class ExplorationCluster {
                 // is this component is part of the cluster?
 
                 // Yes, then get the list
-                repositoryPerComponent.put(CamundaApplication.COMPONENT.OPERATE, kubernetesConnect.getRepositoryNameV2(CamundaApplication.COMPONENT.OPERATE, namespace));
+                // repositoryPerComponent.put(CamundaApplication.COMPONENT.OPERATE, kubernetesConnect.getRepositoryNameV2(CamundaApplication.COMPONENT.OPERATE, namespace));
             } catch (Exception e) {
                 logger.error("Can't get result per component {}", e.getMessage());
             }

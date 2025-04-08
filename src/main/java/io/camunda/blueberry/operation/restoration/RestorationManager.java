@@ -18,7 +18,7 @@ public class RestorationManager {
     public void startRestoration(Long backupId) {
         // Collect the parameters : number of cluster, partitions, replica factor
 
-        ZeebeConnect.ZeebeInformation zeebeInformation = zeebeConnect.getInformation();
+        ZeebeConnect.ClusterInformation clusterInformation = zeebeConnect.getClusterInformation();
         // Do that in asynchronous : start the new thread to run it
 
         // start a RestorationJob, and keep it here
