@@ -12,7 +12,7 @@ Login to Google Cloud and go to Cloud Storage (This can be searched with the sea
 2. Choose a name and leave the rest of the configurations as default
 
 
-![Choose name](image/namedefault.png)
+![Choose name](image/namedefaults.png)
 
 3. Choose  Region as location type and your location.  
 
