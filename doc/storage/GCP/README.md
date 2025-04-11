@@ -7,7 +7,7 @@ This backup guide is based on Camunda 8.6.x
 
 Storage creation  [Prerequisite](GooglePrerequisite.md)
 
-Key download and helm configuration [Prerequisite](keyandhelm.md)
+
 
 
 # Principal
