@@ -2,33 +2,28 @@
 
 Login to Google Cloud and go to Cloud Storage (This can be searched with the search bar) then follow the next steps.
 
-
-
 1. Go to buckets and click on create bucket
 
-![Create Bucket ](image/createbucket.png)
-<img src="image/createbucket.png" width="200" height="200" />
-
+<img src="image/createbucket.png" width="150" height="150" />
 
 2. Choose a name and leave the rest of the configurations as default
 
+<img src="image/namedefaults.png" width="150" height="150" />
 
-![Choose name](image/namedefaults.png)
+3. Choose Region as location type and your location.
 
-3. Choose  Region as location type and your location.  
+<img src="image/region.png" width="150" height="150" />
 
-![Choose region](image/region.png)
+4. Choose the default storage class
 
-4. Choose the default storage class  
+<img src="image/storageclass.png" width="150" height="150" />
 
-![Choose storage class](image/storageclass.png)
+4. Choose the default access control
 
-4. Choose the default access control  
+<img src="image/controlaccess.png" width="150" height="150" />
 
-![Choose access](image/controlaccess.png)
+5. Choose the default object data protection
 
-5. Choose the default object data protection   
-
-![Choose protection](image/dataprotection.png)
+<img src="image/dataprotection.png" width="150" height="150" />
 
 6. Click on create and confirm
