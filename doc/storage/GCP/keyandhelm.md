@@ -14,9 +14,9 @@ Now that you have storage, service account and key the next step is to configure
 zeebe:
   env:
     - name: ZEEBE_BROKER_DATA_BACKUP_GCS_BUCKETNAME
-      value: "patricio-test"
+      value: "storage_name"
     - name: ZEEBE_BROKER_DATA_BACKUP_GCS_BASEPATH
-      value: "patricio-storage"
+      value: "some-directory"
     - name: ZEEBE_BROKER_DATA_BACKUP_STORE
       value: "GCS"
     - name: GOOGLE_APPLICATION_CREDENTIALS
@@ -38,7 +38,13 @@ zeebe:
 
 The google `basepath` is the container name. Zeebe will create snapshots on that repository. It is not possible to give a path to the value, and the data will be stored at the root level.
 
-1.2 Restart the cluster
+1.2
+
+Create a Kubernetes secret that will be used by Camunda.
+
+kubectl create secret generic gcp-credentials --from-literal "key.json=$(cat key.json)" -n camunda
+
+1.3 Restart the cluster
 
 Run the command
 ```shell

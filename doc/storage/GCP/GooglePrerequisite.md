@@ -2,11 +2,11 @@
 
 Login to Google Cloud and go to Cloud Storage (This can be searched with the search bar) then follow the next steps.
 
-1. Click on Create Bucket
+
+
+1. Go to buckets and click on create bucket
 
 ![Create Bucket ](image/createbucket.png)
-
-
 
 
 2. Choose a name and leave the rest of the configurations as default
