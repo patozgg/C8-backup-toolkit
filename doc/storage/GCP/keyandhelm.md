@@ -5,11 +5,10 @@ Now that you have storage, service account and key the next step is to configure
 
 
 
-# 1. Zeebe
 
 ## Configuration
 
-1.1 In the Helm chart , in the Zeebe section, add this information
+1.1 In your custom Helm values, in the Zeebe section, add this information
 ```yaml
 zeebe:
   env:
