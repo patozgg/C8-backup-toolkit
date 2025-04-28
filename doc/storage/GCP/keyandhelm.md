@@ -57,34 +57,34 @@ helm upgrade --namespace camunda camunda camunda/camunda-platform -f <MyValue.ya
 Run a backup on Zeebe directly. See the documentation
 https://docs.camunda.io/docs/self-managed/zeebe-deployment/operations/management-api/
 
-1.3 Port-forward the server
+2.1 Port-forward the server
 ```shell
 kubectl port-forward svc/camunda-zeebe-gateway 9600:9600 -n camunda
 ```
-1.4 Pause the exporting
+2.2 Pause the exporting
 
 ```shell
 curl -X POST "http://localhost:9600/actuator/exporting/pause"   -H 'Content-Type: application/json'    -d '{}'
 ```
 
-1.5 Execute a backup
+2.3 Execute a backup
 
 ```shell
 curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"8\"}"
 ```
-1.6 Monitor the backup
+2.4 Monitor the backup
 ```shell
 curl -s "http://localhost:9600/actuator/backups/8"
 ```
 
-1.7 Resume Zeebe
+2.5 Resume Zeebe
 
 ```shell
 curl -X POST "http://localhost:9600/actuator/exporting/resume"  -H 'Content-Type: application/json'    -d '{}'
 ```
 
 
-1.8 Check the container
+2.6 Check the container
 
 Some files must be visible on the storage
 
