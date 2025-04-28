@@ -4,26 +4,26 @@ It is required to have a service account in order to have your cluster and Camun
 
 1. Connect to Google Cloud Console and go to Service Accounts IAM&Admin
 
-<img src="image/IAM.png" width="300" height="300" />
+<img src="image/IAM.png" width="400" height="200" />
 
 2. Click create service account
 
 3. Fill out the service account name with your preference and add a description (optional).
 
-<img src="image/nameservice.png" width="300" height="300" />
+<img src="image/nameservice.png" width="400" height="400" />
 
 4. Add the storage admin role (or the specific role that you might need to create/delete objects in a bucket) to the service account as per the below
 
-<img src="image/role.png" width="300" height="300" />
+<img src="image/role.png" width="400" height="400" />
 
 5. Click Done
 
 6. Go to the view that shows all of the service accounts and click on your recently created service account.
 
-<img src="image/view.png" width="300" height="300" />
+<img src="image/view.png" width="400" height="400" />
 
 7. Go to the Keys tab
 
 8. Click on add new key --> create new key and select JSON. Download the key and store it in a safe place. This is the key that Camunda will use to gain access to your storage bucket via such service account.
 
-<img src="image/download.png" width="300" height="300" />
+<img src="image/download.png" width="400" height="400" />
