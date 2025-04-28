@@ -20,10 +20,10 @@ It is required to have a service account in order to have your cluster and Camun
 
 6. Go to the view that shows all of the service accounts and click on your recently created service account.
 
-<img src="image/view.png" width="500" height="500" />
+<img src="image/view.png" width="600" height="600" />
 
 7. Go to the Keys tab
 
 8. Click on add new key --> create new key and select JSON. Download the key and store it in a safe place. This is the key that Camunda will use to gain access to your storage bucket via such service account.
 
-<img src="image/download.png" width="500" height="500" />
+<img src="image/download.png" width="600" height="600" />
