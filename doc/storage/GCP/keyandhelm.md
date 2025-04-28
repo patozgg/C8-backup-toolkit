@@ -16,7 +16,7 @@ zeebe:
     - name: ZEEBE_BROKER_DATA_BACKUP_GCS_BUCKETNAME
       value: "storage_name"
     - name: ZEEBE_BROKER_DATA_BACKUP_GCS_BASEPATH
-      value: "some-directory"
+      value: "some_directory_name"
     - name: ZEEBE_BROKER_DATA_BACKUP_STORE
       value: "GCS"
     - name: GOOGLE_APPLICATION_CREDENTIALS
