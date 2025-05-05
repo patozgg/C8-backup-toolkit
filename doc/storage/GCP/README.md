@@ -5,7 +5,7 @@ This backup guide is based on Camunda 8.6.x
 # Pre requisites
 
 
-Storage creation  [Prerequisite](GooglePrerequisite.md)
+[Storage creation](GooglePrerequisite.md)
 
 
 
