@@ -198,7 +198,7 @@ curl -X PUT "http://localhost:9200/_snapshot/zeeberecordrepository" \
   -d '{
     "type": "gcs",
     "settings": {
-      "bucket": "patricio_storage",
+      "bucket": "storage_name",
       "client": "default",
       "base_path": "zeeberecordbackup"
     }
@@ -213,7 +213,7 @@ curl -X PUT "http://localhost:9200/_snapshot/operaterepository" -H "Content-Type
 -d '{
   "type": "gcs",
   "settings": {
-    "bucket": "patricio_storage",
+    "bucket": "storage_name",
     "client": "default",
     "base_path": "operatebackup"
   }
@@ -227,7 +227,7 @@ curl -X PUT "http://localhost:9200/_snapshot/tasklistrepository" -H "Content-Typ
 -d '{
   "type": "gcs",
   "settings": {
-    "bucket": "patricio_storage",
+    "bucket": "storage_name",
     "client": "default",
     "base_path": "tasklistbackup"
   }
@@ -241,7 +241,7 @@ curl -X PUT "http://localhost:9200/_snapshot/optimizerepository" -H "Content-Typ
 -d '{
   "type": "gcs",
   "settings": {
-    "bucket": "patricio_storage",
+    "bucket": "storage_name",
     "client": "default",
     "base_path": "optimizebackup"
   }
