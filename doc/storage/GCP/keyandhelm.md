@@ -268,7 +268,7 @@ curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/backup_1 -H 'C
 
 An answer {“accepted”:true}, and a folder is created on the container
 
-![Container after zeebe record backup](image/ElasticSearchZeebeRecordBackup.png)
+![Container after zeebe record backup](image/repositoryzeebe.png)
 
 
 ** Restore**
@@ -316,7 +316,6 @@ curl -X POST http://localhost:9600/actuator/backups -H 'Content-Type: applicatio
 
 2.16 Check the container
 
-![Container after Operate backup.png](image/ElasticSearchOperateBackup.png)
 
 Get all snapshot on the repository
 
