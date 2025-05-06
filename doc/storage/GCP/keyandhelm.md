@@ -39,7 +39,7 @@ The google `basepath` is the container name. Zeebe will create snapshots on that
 
 1.2
 
-Create a Kubernetes secret that will be used by Camunda.
+Create a Kubernetes secret that will be used by Camunda. The secret will be created using the JSON file that was dowloaded from GCP. 
 
 kubectl create secret generic gcp-credentials --from-literal "key.json=$(cat some-json1231423.json)"
 
