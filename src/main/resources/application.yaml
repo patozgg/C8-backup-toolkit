@@ -5,7 +5,7 @@ blueberry:
   zeebeActuatorUrl: http://camunda-zeebe-gateway:9600
   elasticsearchurl: http://camunda-elasticsearch:9200
 
-  # This information are temporary. They must come from the pod itself
+  # This information is temporary. They must come from the pod itself
   operateRepository: operaterepository
   tasklistRepository: tasklistrepository
   optimizeRepository : optimizerepository
@@ -28,14 +28,16 @@ blueberry:
     zeebeRecordBasePath: zeeberecordbackup
 
     # Define the container used by Zeebe and by ElasticSearch
-  container:
+  containerAzure:
     containerType: azure
     azure:
       containerName: "YourAzureContainerName"
     s3:
       bucket: "YourS3Bucket"
       region: "us-east-2"
-
+    gcs:
+      bucket: "YourS3Bucket"
+      region: "us-east-2"
 
 
 server:

@@ -35,4 +35,13 @@ public interface CamundaApplication {
             return status == 200 || status == 202; // Accept both 200 (Operate, Tasklist) and 202 (Optimize)
         }
     }
+
+    public static class ConnectionInfo {
+        public boolean isConnected;
+        public String explanations;
+        public ConnectionInfo(boolean connected, String explanations) {
+            this.isConnected = connected;
+            this.explanations = explanations;
+        }
+    }
 }

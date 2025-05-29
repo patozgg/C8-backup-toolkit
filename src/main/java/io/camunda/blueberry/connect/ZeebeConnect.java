@@ -89,6 +89,16 @@ public class ZeebeConnect extends WebActuator {
         }
     }
 
+
+
+    /**
+     * Return the connection information plus informatin on the way to connect, in order to give back more feedback
+     * @return
+     */
+    public CamundaApplication.ConnectionInfo isConnectedInformation() {
+        return new CamundaApplication.ConnectionInfo(isConnected(),"Grpc Connection["+zeebeClientConfiguration.getGrpcAddress()+"]");
+    }
+
     public boolean activateConnection() {
         if (isConnected())
             return true;
@@ -109,12 +119,18 @@ public class ZeebeConnect extends WebActuator {
     }
 
     public ClusterInformation getClusterInformation() {
-        final Topology topology = myZeebeClient.newTopologyRequest().send().join();
-        ClusterInformation clusterInformation = new ClusterInformation();
-        clusterInformation.clusterSize = topology.getClusterSize();
-        clusterInformation.partitionsCount = topology.getPartitionsCount();
-        clusterInformation.replicationFactor = topology.getReplicationFactor();
-        return clusterInformation;
+        try {
+            final Topology topology = myZeebeClient.newTopologyRequest().send().join();
+            ClusterInformation clusterInformation = new ClusterInformation();
+            clusterInformation.clusterSize = topology.getClusterSize();
+            clusterInformation.partitionsCount = topology.getPartitionsCount();
+            clusterInformation.replicationFactor = topology.getReplicationFactor();
+
+            return clusterInformation;
+        }catch (Exception e) {
+            logger.error("Can't get ClusterInformation via newTopologyRequest",e);
+            return null;
+        }
     }
 
     public ZeebeClientConfiguration getZeebeConfiguration() {

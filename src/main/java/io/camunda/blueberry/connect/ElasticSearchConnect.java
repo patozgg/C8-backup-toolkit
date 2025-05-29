@@ -1,9 +1,9 @@
 package io.camunda.blueberry.connect;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import io.camunda.blueberry.config.BlueberryConfig;
 import io.camunda.blueberry.connect.container.Container;
 import io.camunda.blueberry.connect.container.ContainerFactory;
-import io.camunda.blueberry.config.BlueberryConfig;
 import io.camunda.blueberry.exception.ElasticsearchException;
 import io.camunda.blueberry.operation.OperationLog;
 import org.slf4j.Logger;
@@ -27,7 +27,6 @@ public class ElasticSearchConnect {
 
     @Autowired
     private RestTemplate restTemplate; // Injected instance
-    private ZeebeConnect zeebeConnect;
 
     public ElasticSearchConnect(BlueberryConfig blueberryConfig, ContainerFactory containerFactory) {
         this.blueberryConfig = blueberryConfig;
@@ -38,6 +37,32 @@ public class ElasticSearchConnect {
         OperationResult operationResult = new OperationResult();
         operationResult.success = true;
         return operationResult;
+    }
+
+    public boolean isConnected() {
+        String url = blueberryConfig.getElasticsearchUrl();
+        try {
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+            // receive {"operaterepository":{"type":"azure","uuid":"7BlNbbw3TxadAqc6M523cw","settings":{"container":"elasticsearchcontainer","base_path":"operatebackup"}}}
+            if (response.getStatusCode() != HttpStatus.OK) {
+                logger.error("Elasticsearch connection failed with status " + response.getStatusCode());
+                return false;
+            }
+            logger.info("Elasticsearch connection successful");
+            return true;
+        } catch (Exception e) {
+            logger.error("Can't access ElasticSearch url[{}] {} ", url, e);
+            return false;
+        }
+    }
+
+    /**
+     * Return the connection information plus informatin on the way to connect, in order to give back more feedback
+     *
+     * @return
+     */
+    public CamundaApplication.ConnectionInfo isConnectedInformation() {
+        return new CamundaApplication.ConnectionInfo(isConnected(), "Url Connection [" + blueberryConfig.getElasticsearchUrl() + "]");
     }
 
     public OperationResult existRepository(String repositoryName) {
@@ -57,8 +82,8 @@ public class ElasticSearchConnect {
 
             JsonNode jsonNode = response.getBody();
 // is a repository is defined?
-            String containerType = jsonNode.path("operaterepository").path("type").asText();
-            String containerUuid = jsonNode.path("operaterepository").path("uuid").asText();
+            String containerType = jsonNode==null? null: jsonNode.path("operaterepository").path("type").asText();
+            String containerUuid = jsonNode==null? null: jsonNode.path("operaterepository").path("uuid").asText();
             operationResult.details = " ContainerType[" + containerType + "] uuid[" + containerUuid + "]";
 
             operationResult.resultBoolean = true;
@@ -137,6 +162,7 @@ public class ElasticSearchConnect {
         }
 
     }
+
     /**
      * curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/12 -H 'Content-Type: application/json'   \
      * -d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'

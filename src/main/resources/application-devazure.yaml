@@ -31,12 +31,15 @@ blueberry:
 
     # Define the container used by Zeebe and by ElasticSearch
   container:
-    containerType: azure
+    containerType: gcs
     azure:
       containerName: "elasticsearchcontainer"
     s3:
       bucket: "joeymanagementbucket"
       region: "us-east-2"
+    gcs:
+      bucket: "pym-pc8backup-20250411"
+      region: "us-east-1"
 
 
 
@@ -49,7 +52,7 @@ server:
 # kubectl port-forward svc/camunda-operate 8081:80 -n camunda
 # kubectl port-forward svc/camunda-tasklist 8082:80 -n camunda
 # kubectl port-forward svc/camunda-elasticsearch 9200:9200 -n camunda
-# port forward component acuator
+# port forward component actuator
 # kubectl port-forward svc/camunda-operate 9601:9600 -n camunda
 # kubectl port-forward svc/camunda-tasklist 9602:9600 -n camunda
 # kubectl port-forward svc/camunda-optimize 9603:8092 -n camunda
@@ -60,7 +63,7 @@ camunda:
     zeebe:
       enabled: false
       gatewayUrl: http://localhost:26500
-      grpc-address: http://localhost-AAAA:26500
+      grpc-address: http://localhost:26500
 
       preferRestOverGrpc: false
       executionThreads: 200

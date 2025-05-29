@@ -11,8 +11,10 @@ import React from 'react';
 import {Button, InlineNotification, Tag} from "carbon-components-react";
 import {Card} from 'react-bootstrap';
 import Chart from "../component/Chart";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import RestCallService from "../services/RestCallService";
-import {ArrowRepeat} from "react-bootstrap-icons";
+import {ArrowRepeat, Terminal} from "react-bootstrap-icons";
+import Tooltip from "react-bootstrap/Tooltip";
 
 
 class Dashboard extends React.Component {
@@ -43,6 +45,15 @@ class Dashboard extends React.Component {
                     next: "",
                     delay: ""
                 }
+
+            },
+            connection: {
+                zeebe: {connection: "VERIFICATION_IN_PROGRESS"},
+                elasticsearch: {connection: "VERIFICATION_IN_PROGRESS"},
+                operate: {connection: "VERIFICATION_IN_PROGRESS"},
+                tasklist: {connection: "VERIFICATION_IN_PROGRESS"},
+                optimize: {connection: "VERIFICATION_IN_PROGRESS"},
+                status: ""
             },
             display: {
                 loading: true
@@ -51,19 +62,25 @@ class Dashboard extends React.Component {
 
         };
         this.schedule = this.schedule.bind(this);
-        this.setDisplayProperty= this.setDisplayProperty.bind(this);
+        this.setDisplayProperty = this.setDisplayProperty.bind(this);
     }
 
     componentDidMount() {
         this.refreshDashboard();
-
+        this.checkConnection();
 
         // Set up the interval to call schedule() every 30 seconds
         this.intervalId = setInterval(this.schedule, 120000);
+        this.intervalConnectionId = setInterval(() => {
+            this.checkConnection();
+        }, 60000); // 60 seconds
     }
+
     // Cleanup to clear the interval when the component unmounts
     componentWillUnmount() {
+        console.log("Dashboard: componentWillUnmount");
         clearInterval(this.intervalId);
+        clearInterval(this.intervalConnectionId);
     }
 
     render() {
@@ -81,7 +98,8 @@ class Dashboard extends React.Component {
                     <div className="col-md-2">
                         <Button className="btn btn-success btn-sm"
                                 onClick={() => {
-                                    this.refreshDashboard()
+                                    this.refreshDashboard();
+                                    this.checkConnection()
                                 }}
                                 disabled={this.state.display.loading}>
                             <ArrowRepeat/> Refresh
@@ -120,20 +138,9 @@ class Dashboard extends React.Component {
                                     <tr>
                                         <td style={{verticalAlign: "middle"}}>Status</td>
                                         <td style={{textAlign: "center"}}>
-                                            {this.state.dashboard.backup.statusBackup === "INPROGRESS" &&
-                                                <div>
-                                                    <Tag type="blue">In progress</Tag><br/>
-                                                    {this.state.dashboard.backup.step}
-                                                </div>
-                                            }
-                                            {this.state.dashboard.backup.statusBackup === "FAILED" &&
-                                                <div>
-                                                    <Tag type="red">Failed</Tag><br/>
-                                                    {this.state.dashboard.backup.step}
-                                                </div>
-                                            }
-                                            {this.state.dashboard.backup.statusBackup === "" &&
-                                                <Tag type="green">Ready</Tag>}
+                                            {this.renderConnectionTag(this.state.dashboard.backup.statusBackup)}
+                                            <br/>
+                                            {this.state.dashboard.backup.step}
                                         </td>
                                     </tr>
                                     <tr>
@@ -168,10 +175,8 @@ class Dashboard extends React.Component {
                                     <tr>
                                         <td>Status</td>
                                         <td style={{textAlign: "center"}}>
-                                            {this.state.dashboard.configuration.statusConfiguration === "CORRECT" &&
-                                                <Tag type="green">Correct</Tag>}
-                                            {this.state.dashboard.configuration.statusConfiguration !== "CORRECT" &&
-                                                <Tag type="red">Failed</Tag>}
+                                            {this.renderConnectionTag(this.state.dashboard.configuration.statusConfiguration)}
+
                                         </td>
                                     </tr>
                                     <tr>
@@ -202,10 +207,8 @@ class Dashboard extends React.Component {
                                     <tr>
                                         <td style={{verticalAlign: "middle"}}>Status</td>
                                         <td style={{textAlign: "center"}}>
-                                            {this.state.dashboard.cluster.statusCluster === "ACTIF" &&
-                                                <Tag type="green">Started</Tag>}
-                                            {this.state.dashboard.cluster.statusCluster !== "ACTIF" &&
-                                                <Tag type="gray">Pause</Tag>}
+                                            {this.renderConnectionTag(this.state.dashboard.cluster.statusCluster)}
+
                                         </td>
                                     </tr>
                                     <tr>
@@ -219,6 +222,77 @@ class Dashboard extends React.Component {
                                     <tr>
                                         <td>Replication Factor</td>
                                         <td style={{textAlign: "right"}}>{this.state.dashboard.cluster.replicationfactor}</td>
+                                    </tr>
+                                </table>
+                            </Card.Body>
+                        </Card>
+                    </div>
+                </div>
+
+                <div className="row" style={{width: "100%", marginTop: "10px"}}>
+                    <div className="col-md-12">
+                        <Card>
+                            <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Connection</Card.Header>
+                            <Card.Body>
+                                <table style={{borderCollapse: "separate", borderSpacing: "10px", tableLayout: "fixed", width: "100%"}}>
+                                    <tr>
+                                        <td style={{textAlign: "center"}}>
+                                            Zeebe&nbsp;&nbsp;
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip id="tooltip">{this.state.connection.zeebe.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                                            </OverlayTrigger>
+                                            <br/>
+                                            {this.renderConnectionTag(this.state.connection.zeebe.connection)}
+                                        </td>
+                                        <td>ElasticSearch&nbsp;&nbsp;
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip id="tooltip">{this.state.connection.elasticsearch.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                                            </OverlayTrigger>
+                                            <br/>
+                                            {this.renderConnectionTag(this.state.connection.elasticsearch.connection)}</td>
+                                        <td>Operate&nbsp;&nbsp;
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip id="tooltip">{this.state.connection.operate.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                                            </OverlayTrigger>
+                                            <br/>
+                                            {this.renderConnectionTag(this.state.connection.operate.connection)}</td>
+                                        <td>TaskList&nbsp;&nbsp;
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip id="tooltip">{this.state.connection.tasklist.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                                            </OverlayTrigger>
+                                            <br/>
+                                            {this.renderConnectionTag(this.state.connection.tasklist.connection)}</td>
+                                        <td>Optimize&nbsp;&nbsp;
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip id="tooltip">{this.state.connection.optimize.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                                            </OverlayTrigger>
+                                            <br/>
+                                            {this.renderConnectionTag(this.state.connection.optimize.connection)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="4">
+                                            {this.state.connection.status}
+                                        </td>
                                     </tr>
                                 </table>
                             </Card.Body>
@@ -241,7 +315,7 @@ class Dashboard extends React.Component {
         restCallService.getJson(uri, this, this.refreshDashboardCallback);
     }
 
-    refreshDashboardCallback= (httpPayload) => {
+    refreshDashboardCallback = (httpPayload) => {
         console.log("DashBoard.refreshDashboardCallback");
 
         this.setDisplayProperty("loading", false);
@@ -249,6 +323,7 @@ class Dashboard extends React.Component {
             console.log("Dashboard.refreshDashboardCallback: error " + httpPayload.getError());
             this.setState({status: "Error"});
         } else {
+
             this.setState({dashboard: httpPayload.getData()});
 
         }
@@ -259,13 +334,13 @@ class Dashboard extends React.Component {
      * @param propertyName name of the property
      * @param propertyValue the value
      */
-    setDisplayProperty= (propertyName, propertyValue) => {
+    setDisplayProperty = (propertyName, propertyValue) => {
         let displayObject = this.state.display;
         displayObject[propertyName] = propertyValue;
         this.setState({display: displayObject});
     }
 
-    schedule () {
+    schedule() {
         let uri = 'blueberry/api/dashboard/all?forceRefresh=false';
         console.log("DashBoard.schedule Schedule http[" + uri + "]");
 
@@ -273,9 +348,63 @@ class Dashboard extends React.Component {
         this.setState({status: ""});
         var restCallService = RestCallService.getInstance();
         restCallService.getJson(uri, this, this.refreshDashboardCallback);
-
-
     }
+
+
+    checkConnection() {
+        let uri = 'blueberry/api/dashboard/checkConnection?';
+        console.log("DashBoard.checkConnection http[" + uri + "]");
+
+        this.setState({status: ""});
+        var restCallService = RestCallService.getInstance();
+        restCallService.getJson(uri, this, this.checkConnectionCallback);
+    }
+
+    checkConnectionCallback = (httpPayload) => {
+        console.log("DashBoard.checkConnectionCallback");
+
+        if (httpPayload.isError()) {
+            console.log("Dashboard.refreshDashboardCallback: error " + httpPayload.getError());
+            this.setState({status: "Error"});
+        } else {
+            this.setState({connection: httpPayload.getData()});
+        }
+    }
+
+
+    renderConnectionTag(status) {
+        if (!status)
+            return <Tag type="gray">Unknown</Tag>;
+        switch (status) {
+            case "READY":
+                return <Tag type="green">Connected</Tag>;
+
+            case "NOT_CONNECTED":
+                return <Tag type="purple">Not connected</Tag>;
+
+            case "VERIFICATION_IN_PROGRESS":
+                return <Tag type="blue">Verification in progress</Tag>;
+
+            case "INPROGRESS":
+                return <Tag type="blue">In progress</Tag>
+
+            case "FAILED":
+                return <Tag type="red">Failed</Tag>
+
+            case "CORRECT":
+                return <Tag type="green">Correct</Tag>
+
+            case "ACTIF":
+                return <Tag type="green">Started</Tag>
+
+            case "INACTIF":
+                return <Tag type="gray">Pause</Tag>
+
+            default:
+                return <Tag type="gray">Unknown</Tag>;
+        }
+    }
+
 }
 
 export default Dashboard;

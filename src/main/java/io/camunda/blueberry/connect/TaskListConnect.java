@@ -28,6 +28,16 @@ public class TaskListConnect implements CamundaApplication {
 
     }
 
+    public boolean isConnected() {
+        return webActuator.isConnected(COMPONENT.TASKLIST, blueberryConfig.getTasklistActuatorUrl()+"/actuator");
+    }
+    /**
+     * Return the connection information plus information on the way to connect, in order to give back more feedback
+     * @return
+     */
+    public CamundaApplication.ConnectionInfo isConnectedInformation() {
+        return new CamundaApplication.ConnectionInfo(isConnected(),"Url Connection ["+blueberryConfig.getTasklistActuatorUrl()+"/actuator]");
+    }
     public COMPONENT getComponent() {
         return COMPONENT.TASKLIST;
     }

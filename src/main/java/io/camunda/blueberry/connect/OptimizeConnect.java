@@ -30,12 +30,23 @@ public class OptimizeConnect implements CamundaApplication {
     public void connection() {
     }
 
+    public boolean isConnected() {
+        return webActuator.isConnected(COMPONENT.OPTIMIZE, blueberryConfig.getOptimizeActuatorUrl()+"/actuator");
+    }
+
+    /**
+     * Return the connection information plus information on the way to connect, in order to give back more feedback
+     * @return
+     */
+    public CamundaApplication.ConnectionInfo isConnectedInformation() {
+        return new CamundaApplication.ConnectionInfo(isConnected(),"Url Connection ["+blueberryConfig.getOptimizeActuatorUrl()+"/actuator]");
+    }
+
     public COMPONENT getComponent() {
         return COMPONENT.OPTIMIZE;
     }
 
     public boolean exist() {
-        String url = blueberryConfig.getOptimizeActuatorUrl();
         return kubenetesToolbox.isPodExist("optimize");
     }
 

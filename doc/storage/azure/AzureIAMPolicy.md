@@ -26,12 +26,14 @@ Under Access Control (IAM), click Add and assign the appropriate role.
 Ensure that your storage account is configured to use Azure AD authentication. This can be done in the Azure portal under 
 Storage Account -> Access control (IAM).
 
-> Note : does this step is mandatory? To be describe
+> Note : does this step mandatory? To be described
 
 Use Azure SDK or Azure CLI:
 
-
+```shell
 az storage blob list --account-name <your_storage_account_name> --container-name <your_container_name> --auth-mode login
+```
+
 This will use your Azure AD credentials (or the Managed Identity) to access the Azure Storage account instead of a security key.
 
 # Install Azure Identity for Kubernetes (AAD Pod Identity)

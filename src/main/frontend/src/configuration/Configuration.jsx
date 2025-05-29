@@ -77,9 +77,7 @@ class Configuration extends React.Component {
                             <tr>
                                 <td>{content.name}</td>
                                 <td>
-                                    {content.status === "FAILED" && <Tag type="red">Failed</Tag>}
-                                    {content.status === "CORRECT" && <Tag type="green">Correct</Tag>}
-                                    {content.status === "DEACTIVATED" && <Tag type="gray">Deactivated</Tag>}
+                                    {this.renderConnectionTag(content.status)}
                                 </td>
                                 <td>{content.detail}
                                     &nbsp;&nbsp;
@@ -101,7 +99,8 @@ class Configuration extends React.Component {
                                         <tbody>
                                         {content.verifications.map((verification, index) => (
                                             <tr key={index} className="border">
-                                                <td className="border p-2">{verification.action}
+                                                <td className="border p-2">
+                                                    {verification.action}&nbsp;&nbsp;
                                                     <OverlayTrigger
                                                         placement="top"
                                                         overlay={<Tooltip id="tooltip">{verification.command}</Tooltip>}
@@ -112,12 +111,7 @@ class Configuration extends React.Component {
                                                     </OverlayTrigger>
                                                 </td>
                                                 <td className="border p-2">
-                                                    {verification.actionStatus === "FAILED" &&
-                                                        <Tag type="red">Failed</Tag>}
-                                                    {verification.actionStatus === "CORRECT" &&
-                                                        <Tag type="green">Correct</Tag>}
-                                                    {verification.actionStatus === "DEACTIVATED" &&
-                                                        <Tag type="gray">Deactivated</Tag>}
+                                                    {this.renderConnectionTag(verification.actionStatus)}
                                                 </td>
                                             </tr>
                                         ))}
@@ -186,6 +180,35 @@ class Configuration extends React.Component {
         let displayObject = this.state.display;
         displayObject[propertyName] = propertyValue;
         this.setState({display: displayObject});
+    }
+
+
+    renderConnectionTag(status) {
+        if (!status)
+            return <Tag type="gray">Unknown</Tag>;
+        switch (status) {
+            case "FAILED":
+                return <Tag type="red">Failed</Tag>
+
+            case "FAILEDBUTWILLBEFIXED":
+                return <Tag type="blue">To be configured</Tag>
+
+            case "CORRECT":
+                return <Tag type="green">Correct</Tag>
+
+            case "DEACTIVATED":
+                return <Tag type="gray">Deactivated</Tag>
+
+            case "INPROGRESS":
+                return <Tag type="blue">In progress</Tag>
+
+            case "NOT_CONNECTED":
+                return <Tag type="magenta">Not connected</Tag>
+
+
+            default:
+                return <Tag type="gray">Unknown</Tag>;
+        }
     }
 }
 

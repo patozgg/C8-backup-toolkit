@@ -3,11 +3,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- 3.2.0 using Zeebe 8.5.x/ SporingBoot 3.3.x -->
-    <!-- 3.4.0 Multi tenant access -->
+    <!-- 1.0.0 First version -->
+    <!-- 1.1.0 Add connection dashboard and review dashboard when no connection is possible to componentq -->
     <groupId>io.camunda.community</groupId>
     <artifactId>blueberry</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <properties>

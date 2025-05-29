@@ -25,7 +25,7 @@ Connect your storage using an [Account Name/Account Key](AzureAccountName.md)
 
 # Connection via an IAM policy
 
-connect your storage using an [IAM Policy](AzureIAMPolicy.md)
+Connect your storage using an [IAM Policy](AzureIAMPolicy.md)
 
 
 

@@ -71,15 +71,14 @@ public class RuleZeebeRecordRepository implements Rule {
                 // now check if the repository exist in Elastic search
                 OperationResult operationResult = elasticSearchConnect.existRepository(blueberryConfig.getZeebeRecordRepository());
                 accessElasticsearchRepository = operationResult.resultBoolean;
-                ruleInfo.addVerifications("Check Elasticsearch repository [" + blueberryConfig.getZeebeRecordRepository() + "] :"
+                ruleInfo.addVerificationsButWillBeFixed("Check Elasticsearch repository [" + blueberryConfig.getZeebeRecordRepository() + "] :"
                                 + operationResult.details,
                         accessElasticsearchRepository ? RuleStatus.CORRECT : RuleStatus.FAILED,
                         operationResult.command);
 
-                // if the repository exist, then we stop the rule execution here
+                // if the repository exists, then we stop the rule execution here
                 if (accessElasticsearchRepository) {
                     ruleInfo.addDetails("Repository exist in Elastic search");
-                    ruleInfo.setStatus(RuleStatus.CORRECT);
                 } else {
                     // if we don't execute the rule, we stop here on a failure
                     if (!execute) {
@@ -106,7 +105,7 @@ public class RuleZeebeRecordRepository implements Rule {
                                 + "] ContainerType[" + blueberryConfig.getContainerType()
                                 + "] ContainerName[" + blueberryConfig.getAzureContainerName()
                                 + "] basePath[" + blueberryConfig.getZeebeRecordContainerBasePath() + "]",
-                        ruleInfo.getStatus(),
+                        operationResult.success? RuleStatus.CORRECT: RuleStatus.FAILED,
                         operationResult.command);
 
             }

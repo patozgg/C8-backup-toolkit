@@ -23,6 +23,19 @@ public class WebActuator {
     }
 
 
+    public boolean isConnected(CamundaApplication.COMPONENT component, String url) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String response = restTemplate.getForObject(url, String.class);
+            logger.info("Check connection component [{}] url [{}] with success", component, url);
+            return true;
+        } catch(Exception e) {
+            logger.error("Can't connect Component [{}] url[{}] {}", component,url,e);
+            return false;
+        }
+    }
+
+
     /**
      * Start the backup command
      * Example curl -X POST http://localhost:8081/actuator/backup -H "Content-Type: application/json" -d '{"backupId": 12}'

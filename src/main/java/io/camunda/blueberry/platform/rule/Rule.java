@@ -28,7 +28,7 @@ public interface Rule {
     RuleInfo configure();
 
 
-    enum RuleStatus {DEACTIVATED, CORRECT, FAILED, INPROGRESS}
+    enum RuleStatus {DEACTIVATED, CORRECT, FAILED, INPROGRESS, FAILEDBUTWILLBEFIXED}
 
 
     /**
@@ -36,7 +36,7 @@ public interface Rule {
      */
     class RuleInfo {
         private boolean valid;
-        private StringBuffer details = new StringBuffer();
+        private StringBuilder details = new StringBuilder();
         private RuleStatus status = RuleStatus.INPROGRESS;
         private final Rule rule;
 
@@ -91,6 +91,15 @@ public interface Rule {
         }
 
         public void addVerifications(String action, RuleStatus actionStatus, String command) {
+            this.listVerifications.add(new Tuple(action, actionStatus, command));
+        }
+        public void addVerificationsAssertBoolean(String action, boolean status, String command) {
+            this.listVerifications.add(new Tuple(action, status? RuleStatus.CORRECT: RuleStatus.FAILED, command));
+        }
+        public void addVerificationsButWillBeFixed(String action, RuleStatus actionStatus, String command) {
+            if (actionStatus.equals(RuleStatus.FAILED)) {
+                actionStatus = RuleStatus.FAILEDBUTWILLBEFIXED;
+            }
             this.listVerifications.add(new Tuple(action, actionStatus, command));
         }
 

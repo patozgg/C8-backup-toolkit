@@ -65,30 +65,25 @@ public class RuleTasklistRepository implements Rule {
         // get the Pod description
         RuleInfo ruleInfo = new RuleInfo(this);
 
-        if (validRule()) {
-            // ---------- First step, ask Operate for the name of the repository
-            // the rule is in progress
-            ruleInfo.setStatus(RuleStatus.INPROGRESS);
-            String tasklistRepository = null;
-            OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplication.COMPONENT.TASKLIST, blueberryConfig.getNamespace());
-            if (!operationResult.success) {
-                ruleInfo.addDetails("Can't access the Repository name in the pod, or does not exist");
-                ruleInfo.addDetails(operationResult.details);
-                ruleInfo.setStatus(RuleStatus.FAILED);
-            } else {
-                tasklistRepository = operationResult.resultSt;
+        if (!validRule()) {
+            return ruleInfo;
+        }
+        // ---------- First step, ask Operate for the name of the repository
+        // the rule is in progress
+        ruleInfo.setStatus(RuleStatus.INPROGRESS);
+        String taskListRepository = getRepositoryByConfiguration(ruleInfo);
+        if (taskListRepository == null) {
+            ruleInfo.setStatus(RuleStatus.FAILED);
+        }
 
-            }
-            ruleInfo.addVerifications("Access pod repository, retrieve [" + tasklistRepository + "]", ruleInfo.inProgress() ? RuleStatus.CORRECT : RuleStatus.FAILED,
-                    operationResult.command);
+        ruleInfo.addVerificationsAssertBoolean("Access pod repository, retrieve [" + taskListRepository + "]", taskListRepository != null,
+                "From Configuration");
 
-
-            //------------ Second step, verify if the repository exist in elasticSearch
+            //------------ Second step, verify if the repository exists in elasticSearch
             if (ruleInfo.inProgress()) {
-                // now check if the repository exist in Elastic search
-                operationResult = elasticSearchConnect.existRepository(tasklistRepository);
+                OperationResult operationResult = elasticSearchConnect.existRepository(taskListRepository);
                 accessElasticsearchRepository = operationResult.resultBoolean;
-                ruleInfo.addVerifications("Check Elasticsearch repository [" + tasklistRepository + "] :"
+                ruleInfo.addVerificationsButWillBeFixed("Check Elasticsearch repository [" + taskListRepository + "] :"
                                 + operationResult.details,
                         accessElasticsearchRepository ? RuleStatus.CORRECT : RuleStatus.FAILED,
                         operationResult.command);
@@ -96,7 +91,6 @@ public class RuleTasklistRepository implements Rule {
                 // if the repository exist, then we stop the rule execution here
                 if (accessElasticsearchRepository) {
                     ruleInfo.addDetails("Repository exist in Elastic search");
-                    ruleInfo.setStatus(RuleStatus.CORRECT);
                 } else {
                     // if we don't execute the rule, we stop here on a failure
                     if (!execute) {
@@ -110,25 +104,49 @@ public class RuleTasklistRepository implements Rule {
             // Third step, create the repository if asked
             if (execute && ruleInfo.inProgress()) {
 
-                operationResult = elasticSearchConnect.createRepository(tasklistRepository,
+                OperationResult operationResult = elasticSearchConnect.createRepository(taskListRepository,
                         blueberryConfig.getContainerType(),
                         blueberryConfig.getTasklistContainerBasePath());
                 if (operationResult.success) {
                     ruleInfo.addDetails("Repository is created in ElasticSearch");
-                    ruleInfo.setStatus(RuleStatus.CORRECT);
                 } else {
                     ruleInfo.addDetails("Error when creating the repository in ElasticSearch :" + operationResult.details);
                     ruleInfo.setStatus(RuleStatus.FAILED);
                 }
-                ruleInfo.addVerifications("Check Elasticsearch repository [" + tasklistRepository
+                ruleInfo.addVerifications("Check Elasticsearch repository [" + taskListRepository
                                 + "] basePath[" + blueberryConfig.getOperateContainerBasePath()
                                 + "] " + operationResult.details,
-                        ruleInfo.getStatus(),
+                        operationResult.success? RuleStatus.CORRECT: RuleStatus.FAILED,
                         operationResult.command);
 
             }
+        // Still in progress at this point? All is OK then
+        if (ruleInfo.inProgress()) {
+            ruleInfo.setStatus(RuleStatus.CORRECT);
         }
         return ruleInfo;
     }
 
+    private String getRepositoryByConfiguration(RuleInfo ruleInfo) {
+        ruleInfo.addDetails("Access RepositoryName from Blueberry configuration");
+        return blueberryConfig.getTasklistRepository();
+    }
+
+    private String getRepositoryByTasklistEnvironment(RuleInfo ruleInfo) {
+        ruleInfo.addDetails("Access RepositoryName exploring Tasklist environment");
+        return null;
+    }
+
+    private String getRepositoryKubernetes(RuleInfo ruleInfo) {
+        OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplication.COMPONENT.TASKLIST, blueberryConfig.getNamespace());
+        if (!operationResult.success) {
+            ruleInfo.addDetails("Can't access the Repository name in the pod, or does not exist");
+            ruleInfo.addDetails(operationResult.details);
+            ruleInfo.setStatus(RuleStatus.FAILED);
+        } else {
+            ruleInfo.addDetails("Access RepositoryName exploring Kubernetes environment");
+            return operationResult.resultSt;
+        }
+        return null;
+    }
 }

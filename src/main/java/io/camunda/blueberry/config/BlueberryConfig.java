@@ -84,6 +84,12 @@ public class BlueberryConfig {
     @Value("${blueberry.container.s3.basePath:}")
     private String s3BasePath;
 
+    @Value("${blueberry.container.gcs.bucket:}")
+    private String gcsBucket;
+
+    @Value("${blueberry.container.gcs.basePath:}")
+    private String gcsBasePath;
+
     @Value("${blueberry.container.s3.region:}")
     private String s3Region;
 
@@ -173,6 +179,16 @@ public class BlueberryConfig {
     public String getS3Region() {
         return s3Region;
     }
+
+    // Getters for S3 configuration
+    public String getGcsBucket() {
+        return gcsBucket;
+    }
+
+    public String getGcsBasePath() {
+        return gcsBasePath;
+    }
+
 
 
 
