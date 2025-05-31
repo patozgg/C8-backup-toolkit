@@ -9,21 +9,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * This class are in charge to start a backup,
  */
 @Component
 public class BackupManager {
+    private final ElasticSearchConnect elasticSearchConnect;
+    Logger logger = LoggerFactory.getLogger(BackupManager.class);
     final OperateConnect operateConnect;
     final TaskListConnect taskListConnect;
     final OptimizeConnect optimizeConnect;
     final ZeebeConnect zeebeConnect;
-    private final ElasticSearchConnect elasticSearchConnect;
-    Logger logger = LoggerFactory.getLogger(BackupManager.class);
-    List<BackupComponentInt> listBackupComponents;
     private BackupJob backupJob;
+
+    List<BackupComponentInt> listBackupComponents;
 
     public BackupManager(OperateConnect operateConnect, TaskListConnect taskListConnect, OptimizeConnect optimizeConnect,
                          ZeebeConnect zeebeConnect, ElasticSearchConnect elasticSearchConnect,
@@ -92,6 +96,8 @@ public class BackupManager {
         public List<OperationException> listErrors = new ArrayList<>();
         public Map<String,String> listUrls = new HashMap<>();
     }
+
+
     /**
      * Return the list of backup
      * All components are asking its backup, to establish a complete list
@@ -115,7 +121,7 @@ public class BackupManager {
             if (backupComponent.isActive())
                 totalActiveComponents++;
         }
-        for (BackupInfo backupInfo : listBackupResult.listBackups) {
+        for (BackupInfo backupInfo : mergedList) {
             if (backupInfo.status.equals(BackupInfo.Status.COMPLETED) && backupInfo.components.size() != totalActiveComponents) {
                 backupInfo.status = BackupInfo.Status.PARTIALBACKUP;
             }
