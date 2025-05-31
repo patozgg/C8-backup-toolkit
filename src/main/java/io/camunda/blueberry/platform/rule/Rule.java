@@ -37,6 +37,7 @@ public interface Rule {
     class RuleInfo {
         private boolean valid;
         private StringBuilder details = new StringBuilder();
+        private StringBuilder errors  = new StringBuilder();
         private RuleStatus status = RuleStatus.INPROGRESS;
         private final Rule rule;
 
@@ -57,6 +58,9 @@ public interface Rule {
         public void addDetails(String details) {
             this.details.append(details + ";");
         }
+        public void addError(String error) {
+            this.errors.append(error + ";");
+        }
 
 
         public String getDetails() {
@@ -65,7 +69,9 @@ public interface Rule {
             }
             return details.toString();
         }
-
+        public String getErrors() {
+            return errors.toString();
+        }
         public boolean isValid() {
             return valid;
         }

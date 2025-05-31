@@ -234,60 +234,31 @@ class Dashboard extends React.Component {
                         <Card>
                             <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Connection</Card.Header>
                             <Card.Body>
-                                <table style={{borderCollapse: "separate", borderSpacing: "10px", tableLayout: "fixed", width: "100%"}}>
+                                <table style={{
+                                    borderCollapse: "separate",
+                                    borderSpacing: "10px",
+                                    tableLayout: "fixed",
+                                    width: "100%"
+                                }}>
                                     <tr>
                                         <td style={{textAlign: "center"}}>
-                                            Zeebe&nbsp;&nbsp;
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={<Tooltip id="tooltip">{this.state.connection.zeebe.explanation}</Tooltip>}>
-                                                      <span className="d-inline-block">
-                                                        <Terminal size={20} className="text-muted"/>
-                                                      </span>
-                                            </OverlayTrigger>
-                                            <br/>
-                                            {this.renderConnectionTag(this.state.connection.zeebe.connection)}
+                                            {this.renderConnection("Zeebe", this.state.connection?.zeebe)}
                                         </td>
-                                        <td>ElasticSearch&nbsp;&nbsp;
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={<Tooltip id="tooltip">{this.state.connection.elasticsearch.explanation}</Tooltip>}>
-                                                      <span className="d-inline-block">
-                                                        <Terminal size={20} className="text-muted"/>
-                                                      </span>
-                                            </OverlayTrigger>
-                                            <br/>
-                                            {this.renderConnectionTag(this.state.connection.elasticsearch.connection)}</td>
-                                        <td>Operate&nbsp;&nbsp;
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={<Tooltip id="tooltip">{this.state.connection.operate.explanation}</Tooltip>}>
-                                                      <span className="d-inline-block">
-                                                        <Terminal size={20} className="text-muted"/>
-                                                      </span>
-                                            </OverlayTrigger>
-                                            <br/>
-                                            {this.renderConnectionTag(this.state.connection.operate.connection)}</td>
-                                        <td>TaskList&nbsp;&nbsp;
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={<Tooltip id="tooltip">{this.state.connection.tasklist.explanation}</Tooltip>}>
-                                                      <span className="d-inline-block">
-                                                        <Terminal size={20} className="text-muted"/>
-                                                      </span>
-                                            </OverlayTrigger>
-                                            <br/>
-                                            {this.renderConnectionTag(this.state.connection.tasklist.connection)}</td>
-                                        <td>Optimize&nbsp;&nbsp;
-                                            <OverlayTrigger
-                                                placement="top"
-                                                overlay={<Tooltip id="tooltip">{this.state.connection.optimize.explanation}</Tooltip>}>
-                                                      <span className="d-inline-block">
-                                                        <Terminal size={20} className="text-muted"/>
-                                                      </span>
-                                            </OverlayTrigger>
-                                            <br/>
-                                            {this.renderConnectionTag(this.state.connection.optimize.connection)}</td>
+                                        <td style={{textAlign: "center"}}>
+                                            {this.renderConnection("Zeebe Actuator", this.state.connection?.zeebeActuator)}
+                                        </td>
+                                        <td>
+                                            {this.renderConnection("ElasticSearch", this.state.connection?.elasticsearch)}
+                                        </td>
+                                        <td>
+                                            {this.renderConnection("Operate", this.state.connection?.operate)}
+                                        </td>
+                                        <td>
+                                            {this.renderConnection("TaskList", this.state.connection?.tasklist)}
+                                        </td>
+                                        <td>
+                                            {this.renderConnection("Optimize", this.state.connection?.optimize)}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colSpan="4">
@@ -403,6 +374,33 @@ class Dashboard extends React.Component {
             default:
                 return <Tag type="gray">Unknown</Tag>;
         }
+    }
+
+    renderConnection(name, connectionInfo) {
+        if (connectionInfo == null) {
+            return <div>{name}</div>
+        }
+        return <div>
+            <table>
+                <tr>
+                    <td>{name}&nbsp;</td>
+                    <td>{connectionInfo?.explanation &&
+                        <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip
+                                id="tooltip">{connectionInfo.explanation}</Tooltip>}>
+                                                      <span className="d-inline-block">
+                                                        <Terminal size={20} className="text-muted"/>
+                                                      </span>
+                        </OverlayTrigger>}
+                    </td>
+                </tr>
+                <tr>
+                    <td colSpan="2">
+                        {this.renderConnectionTag(connectionInfo.connection)}</td>
+                </tr>
+            </table>
+        </div>
     }
 
 }

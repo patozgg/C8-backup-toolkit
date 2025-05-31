@@ -29,12 +29,23 @@ class Backup extends React.Component {
             currentBackup: {statusBackup: ""}
 
         };
+
     }
 
     componentDidMount() {
         this.monitorBackup();
-    }
 
+        // Set up the interval to call schedule() every 10 seconds
+        this.intervalConnectionId = setInterval(() => {
+            this.monitorBackup();
+        }, 10000);
+
+    }
+    // Cleanup to clear the interval when the component unmounts
+    componentWillUnmount() {
+        console.log("Backup: componentWillUnmount");
+        clearInterval(this.intervalId);
+    }
     /*           {JSON.stringify(this.state.runners, null, 2) } */
     render() {
         return (
@@ -107,7 +118,7 @@ class Backup extends React.Component {
                             <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)", height: "50px"}} className="d-flex justify-content-between align-items-center h-150">Current backup
                                 <Button className="btn btn-light btn-sm"
                                         onClick={() => {
-                                            this.monitorBackup()
+                                            this.monitorBackup();
                                         }}
                                         disabled={this.state.display.loading}>
                                     <ArrowRepeat/>
@@ -119,20 +130,13 @@ class Backup extends React.Component {
                                     <tr>
                                         <td style={{verticalAlign: "middle"}}>Status</td>
                                         <td style={{textAlign: "center"}}>
-                                            {this.state.currentBackup.statusBackup === "INPROGRESS" &&
-                                                <div>
-                                                    <Tag type="blue">In progress</Tag><br/>
-                                                </div>
-                                            }
-                                            {this.state.currentBackup.statusBackup === "FAILED" &&
-                                                <div>
-                                                    <Tag type="red">Failed</Tag><br/>
+                                            {this.renderConnectionTag(this.state.currentBackup.statusBackup)}
 
-                                                </div>
-                                            }
-                                            {this.state.currentBackup.statusBackup === "" &&
-                                                <Tag type="green">Ready</Tag>}
                                         </td>
+                                    </tr>
+                                    <tr>
+                                        <td>backup Id</td>
+                                        <td>{this.state.currentBackup.backupId}</td>
                                     </tr>
                                     <tr>
                                         <td>Advancement</td>
@@ -144,7 +148,21 @@ class Backup extends React.Component {
                                         <td>Current operation</td>
                                         <td>{this.state.currentBackup.stepName}</td>
                                     </tr>
+                                    <tr>
+                                        <td>Date status</td>
+                                        <td>{this.state.currentBackup.dateStatus}</td>
+                                    </tr>
                                 </table>
+
+
+                                <div>
+                                    {this.state.currentBackup?.messages?.map((entry, index) => (
+                                        <div key={index} className={`alert ${entry.type === 'ERROR' ? 'alert-danger' : 'alert-info'}`} role="alert">
+                                            <strong>{entry.type}</strong> - ({entry.component}) – {new Date(entry.date).toLocaleString()}<br />
+                                            {entry.message}
+                                        </div>
+                                    ))}
+                                </div>
 
 
                             </Card.Body>
@@ -154,7 +172,8 @@ class Backup extends React.Component {
                 <div className="row" style={{marginTop: "10px"}}>
                     <Button className="btn btn-success btn-sm"
                             onClick={() => {
-                                this.refreshListBackup()
+                                this.refreshListBackup();
+                                this.monitorBackup();
                             }}
                             disabled={this.state.display.loading}>
                         <ArrowRepeat/> Refresh
@@ -167,6 +186,7 @@ class Backup extends React.Component {
                     <tr>
                         <th>ID</th>
                         <th>Status</th>
+                        <th>Components</th>
                         <th>Name</th>
                         <th>Date</th>
                     </tr>
@@ -176,7 +196,12 @@ class Backup extends React.Component {
                         <tr>
                             <td>{content.backupId}</td>
                             <td>
-                                <Tag type={this.getTypeFromStatus(content.backupStatus)}>{content.backupStatus}</Tag>
+                                {this.renderConnectionTag(content.backupStatus)}
+                            </td>
+                            <td>
+                                {content.components && content.components.map((component, index) => (
+                                    <Tag key={index} type="blue">{component}</Tag>
+                                ))}
                             </td>
                             <td>{content.backupName}</td>
                             <td>{content.backupTime}</td>
@@ -190,20 +215,31 @@ class Backup extends React.Component {
         )
     }
 
-    getTypeFromStatus(status) {
-        if (status == "COMPLETE")
-            return "green";
-        if (status == "FAILED")
-            return "red";
-        if (status == "INPROGRESS")
-            return "blue";
-        return "gray";
-    }
 
-    /* Set the display property
- * @param propertyName name of the property
- * @param propertyValue the value
- */
+    renderConnectionTag(status) {
+        if (!status)
+            return <Tag type="gray">Unknown</Tag>;
+
+        switch (status) {
+            case "COMPLETED":
+                return <Tag type="green">Complete</Tag>;
+            case "FAILED":
+                return <Tag type="red">Failed</Tag>;
+            case "INPROGRESS":
+                return <Tag type="blue">In progress</Tag>;
+            case "READY":
+                return <Tag type="green">Ready</Tag>;
+            case "PARTIALBACKUP":
+                return <Tag type="red">Partial backup</Tag>;
+            default:
+                return <Tag type="gray">Unknown</Tag>;
+
+        }
+    }
+        /* Set the display property
+     * @param propertyName name of the property
+     * @param propertyValue the value
+     */
     setDisplayProperty(propertyName, propertyValue) {
         let displayObject = this.state.display;
         displayObject[propertyName] = propertyValue;
@@ -212,13 +248,14 @@ class Backup extends React.Component {
 
     monitorBackup() {
         let uri = '/blueberry/api/backup/monitor?';
-        console.log("backup.refresh http[" + uri + "]");
+        console.log("backup.monitorBackup http[" + uri + "]");
 
         var restCallService = RestCallService.getInstance();
         restCallService.getJson(uri, this, this.monitorBackupCallback);
     }
 
     monitorBackupCallback(httpPayload) {
+        console.log("Backup.monitorBackupCallback");
         if (httpPayload.isError()) {
             console.log("Backup.monitorBackupCallback: error " + httpPayload.getError());
             this.setState({
@@ -288,7 +325,8 @@ class Backup extends React.Component {
                     backup: httpPayload.getData().backupId,
                     statusOperation: httpPayload.getData().statusOperation
                 });
-
+            this.monitorBackup();
+            this.refreshListBackup();
         }
     }
 

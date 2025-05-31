@@ -42,7 +42,8 @@ public class ConfigurationRestController {
                         Map<String, Object> info = Map.of("name", ruleInfo.getName(),
                                 "valid", ruleInfo.isValid(),
                                 "status", ruleInfo.getStatus().toString(),
-                                "detail", ruleInfo.getDetails(),
+                                "details", ruleInfo.getDetails(),
+                                "errors", ruleInfo.getErrors(),
                                 "explanations", ruleInfo.getRule().getExplanations(),
                                 "urldocumentation", ruleInfo.getRule().getUrlDocumentation(),
                                 "verifications", ruleInfo.getListVerifications()
@@ -76,7 +77,8 @@ public class ConfigurationRestController {
                         Map<String, Object> info = Map.of("name", ruleInfo.getName(),
                                 "valid", ruleInfo.isValid(),
                                 "status", ruleInfo.getStatus().toString(),
-                                "detail", ruleInfo.getDetails(),
+                                "details", ruleInfo.getDetails(),
+                                "errors", ruleInfo.getErrors(),
                                 "explanations", ruleInfo.getRule().getExplanations(),
                                 "urldocumentation", ruleInfo.getRule().getUrlDocumentation(),
                                 "verifications", ruleInfo.getListVerifications()
@@ -84,7 +86,8 @@ public class ConfigurationRestController {
                                         .map(tuple -> {
                                             return Map.of(
                                                     "action", tuple.action(),
-                                                    "actionStatus", tuple.actionStatus().toString()
+                                                    "actionStatus", tuple.actionStatus().toString(),
+                                                    "command", tuple.command()==null? "": tuple.command()
                                             );
                                         })
                                         .toList());

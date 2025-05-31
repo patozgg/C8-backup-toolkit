@@ -9,12 +9,8 @@ import java.util.List;
 /**
  * Multiples component (Operate, TaskList, Optimize) react as the same way. To Simplify the management, they are mark as a "component"
  */
-public interface CamundaApplication {
+public interface CamundaApplicationInt extends BackupComponentInt{
     boolean exist();
-
-    BackupOperation backup(Long backupId, OperationLog operationLog) throws BackupException;
-
-    void waitBackup(Long backupId, OperationLog operationLog) throws BackupException;
 
     /**
      * Return the component behind this application
@@ -23,18 +19,8 @@ public interface CamundaApplication {
      */
     COMPONENT getComponent();
 
-    enum COMPONENT {TASKLIST, OPERATE, OPTIMIZE, ZEEBERECORD}
+    enum COMPONENT {TASKLIST, OPERATE, OPTIMIZE, ZEEBERECORD, ZEEBE}
 
-    class BackupOperation {
-        public List<String> listSnapshots = new ArrayList<>();
-        public int status;
-        public String title;
-        public String message;
-
-        public boolean isOk() {
-            return status == 200 || status == 202; // Accept both 200 (Operate, Tasklist) and 202 (Optimize)
-        }
-    }
 
     public static class ConnectionInfo {
         public boolean isConnected;

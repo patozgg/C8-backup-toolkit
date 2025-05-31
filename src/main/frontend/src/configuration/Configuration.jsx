@@ -8,10 +8,12 @@
 
 import React from 'react';
 import {Accordion, AccordionItem, Button, InlineNotification, Link, Tag} from "carbon-components-react";
-import {ArrowRepeat, QuestionCircle, Terminal } from "react-bootstrap-icons";
+import {ArrowRepeat, QuestionCircle, Terminal} from "react-bootstrap-icons";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import RestCallService from "../services/RestCallService";
+import {Alert} from 'react-bootstrap';
+
 
 class Configuration extends React.Component {
 
@@ -79,7 +81,15 @@ class Configuration extends React.Component {
                                 <td>
                                     {this.renderConnectionTag(content.status)}
                                 </td>
-                                <td>{content.detail}
+                                <td>{content.details}
+
+                                    {content.errors && (
+                                        <Alert variant="danger">
+                                            {content.errors}
+                                        </Alert>
+                                    )}
+                                    For debug
+                                    {content.errors}
                                     &nbsp;&nbsp;
                                     <OverlayTrigger
                                         placement="top"
@@ -101,14 +111,16 @@ class Configuration extends React.Component {
                                             <tr key={index} className="border">
                                                 <td className="border p-2">
                                                     {verification.action}&nbsp;&nbsp;
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip id="tooltip">{verification.command}</Tooltip>}
-                                                    >
+                                                    {verification.command &&
+                                                        <OverlayTrigger
+                                                            placement="top"
+                                                            overlay={<Tooltip id="tooltip">{verification.command}</Tooltip>}
+                                                        >
                                                       <span className="d-inline-block">
                                                         <Terminal size={20} className="text-muted"/>
                                                       </span>
-                                                    </OverlayTrigger>
+                                                        </OverlayTrigger>
+                                                    }
                                                 </td>
                                                 <td className="border p-2">
                                                     {this.renderConnectionTag(verification.actionStatus)}
@@ -119,8 +131,8 @@ class Configuration extends React.Component {
                                     </table>
                                     <p/>
                                     {/* Documentation Links */}
-                                    <Accordion className="mt-4">
-                                        <AccordionItem title="Documentation">
+                                    <Accordion className="mt-4" defaultActiveKey="0">
+                                        <AccordionItem title="Documentation" eventKey="0">
                                             {content.urldocumentation.map((url, index) => (
                                                 <p key={index}>
                                                     <Link href={url} target="_blank">

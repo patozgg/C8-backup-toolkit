@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class are in charge to start a backup,
@@ -24,12 +26,17 @@ public class BackupManager {
     final ZeebeConnect zeebeConnect;
     private BackupJob backupJob;
 
-    public BackupManager(OperateConnect operateConnect, TaskListConnect taskListConnect, OptimizeConnect optimizeConnect, ZeebeConnect zeebeConnect, ElasticSearchConnect elasticSearchConnect) {
+    List<BackupComponentInt> listBackupComponents;
+
+    public BackupManager(OperateConnect operateConnect, TaskListConnect taskListConnect, OptimizeConnect optimizeConnect,
+                         ZeebeConnect zeebeConnect, ElasticSearchConnect elasticSearchConnect,
+                         List<BackupComponentInt> listBackupComponents) {
         this.operateConnect = operateConnect;
         this.taskListConnect = taskListConnect;
         this.optimizeConnect = optimizeConnect;
         this.zeebeConnect = zeebeConnect;
         this.elasticSearchConnect = elasticSearchConnect;
+        this.listBackupComponents = listBackupComponents;
     }
 
     public synchronized void startBackup(BackupParameter backupParameter) throws OperationException {
@@ -44,7 +51,7 @@ public class BackupManager {
             // calculate a new backup ID
             long maxId = 0;
             try {
-                List<BackupInfo> listBackup = getListBackup();
+                List<BackupInfo> listBackup = getListBackups();
                 for (BackupInfo info : listBackup) {
                     if (info.backupId > maxId)
                         maxId = info.backupId;
@@ -67,17 +74,11 @@ public class BackupManager {
             try {
                 backupJob.backup(backupId);
             } catch (BackupException e) {
-               logger.error("BackupId["+backupId+"] failed", e);
+                logger.error("BackupId[" + backupId + "] failed", e);
             }
-        }).start();    }
-    /**
-     * Return the list of all backups visible on the platform
-     *
-     * @return
-     */
-    public List<BackupInfo> getListBackup() throws OperationException {
-        return zeebeConnect.getListBackup();
+        }).start();
     }
+
 
     /**
      * If a job is started, then a backupJob exist.
@@ -95,4 +96,56 @@ public class BackupManager {
     }
 
 
+    /**
+     * Return the list of backup
+     * All components are asking its backup, to establish a complete list
+     *
+     * @return
+     */
+    public List<BackupInfo> getListBackups() throws OperationException {
+        List<BackupInfo> mergedList = new ArrayList<>();
+        for (BackupComponentInt backupComponent : listBackupComponents) {
+            try {
+                mergeListBackups(mergedList, backupComponent.getListBackups());
+            } catch (OperationException e) {
+                logger.error("Zeebe Error when accessing the list of Backups: {}", e);
+                throw e;
+            }
+        }
+        // Update the status on each backup according the list of components
+        int totalActiveComponents = 0;
+        for (BackupComponentInt backupComponent : listBackupComponents) {
+            if (backupComponent.isActive())
+                totalActiveComponents++;
+        }
+        for (BackupInfo backupInfo : mergedList) {
+            if (backupInfo.status.equals(BackupInfo.Status.COMPLETED) && backupInfo.components.size() != totalActiveComponents) {
+                backupInfo.status = BackupInfo.Status.PARTIALBACKUP;
+            }
+        }
+
+        return mergedList;
+    }
+
+    /**
+     * Merge the two list
+     *
+     * @param referenceList reference list
+     * @param newList       new list to merge
+     * @return the reference list
+     */
+    private List<BackupInfo> mergeListBackups(List<BackupInfo> referenceList, List<BackupInfo> newList) {
+        for (BackupInfo backupInfo : newList) {
+            Optional<BackupInfo> result = referenceList.stream()
+                    .filter(b -> b.backupId == backupInfo.backupId)
+                    .findFirst();
+            if (result.isPresent())
+                result.get().components.addAll(backupInfo.components);
+            else
+                referenceList.add(backupInfo);
+        }
+        return referenceList;
+
+
+    }
 }

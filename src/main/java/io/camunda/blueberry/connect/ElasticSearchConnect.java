@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.camunda.blueberry.config.BlueberryConfig;
 import io.camunda.blueberry.connect.container.Container;
 import io.camunda.blueberry.connect.container.ContainerFactory;
+import io.camunda.blueberry.exception.BackupException;
 import io.camunda.blueberry.exception.ElasticsearchException;
+import io.camunda.blueberry.exception.OperationException;
 import io.camunda.blueberry.operation.OperationLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class ElasticSearchConnect {
+public class ElasticSearchConnect implements BackupComponentInt {
     Logger logger = LoggerFactory.getLogger(ElasticSearchConnect.class);
 
     BlueberryConfig blueberryConfig;
@@ -61,8 +63,8 @@ public class ElasticSearchConnect {
      *
      * @return
      */
-    public CamundaApplication.ConnectionInfo isConnectedInformation() {
-        return new CamundaApplication.ConnectionInfo(isConnected(), "Url Connection [" + blueberryConfig.getElasticsearchUrl() + "]");
+    public CamundaApplicationInt.ConnectionInfo isConnectedInformation() {
+        return new CamundaApplicationInt.ConnectionInfo(isConnected(), "Url Connection [" + blueberryConfig.getElasticsearchUrl() + "]");
     }
 
     public OperationResult existRepository(String repositoryName) {
@@ -82,8 +84,8 @@ public class ElasticSearchConnect {
 
             JsonNode jsonNode = response.getBody();
 // is a repository is defined?
-            String containerType = jsonNode==null? null: jsonNode.path("operaterepository").path("type").asText();
-            String containerUuid = jsonNode==null? null: jsonNode.path("operaterepository").path("uuid").asText();
+            String containerType = jsonNode == null ? null : jsonNode.path("operaterepository").path("type").asText();
+            String containerUuid = jsonNode == null ? null : jsonNode.path("operaterepository").path("uuid").asText();
             operationResult.details = " ContainerType[" + containerType + "] uuid[" + containerUuid + "]";
 
             operationResult.resultBoolean = true;
@@ -163,18 +165,117 @@ public class ElasticSearchConnect {
 
     }
 
-    /**
-     * curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/12 -H 'Content-Type: application/json'   \
-     * -d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'
-     *
+
+    @Override
+    public boolean isActive() {
+        return blueberryConfig.getElasticsearchUrl() != null;
+    }
+
+    @Override
+    public CamundaApplicationInt.COMPONENT getComponent() {
+        return CamundaApplicationInt.COMPONENT.ZEEBERECORD;
+    }
+
+    /***
+     *      * curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/12 -H 'Content-Type: application/json'   \
+     *      * -d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'
      * @param backupId
      * @param operationLog
+     * @return
+     * @throws BackupException
      */
-    public void esBackup(Long backupId, OperationLog operationLog) {
+    @Override
+    public BackupOperation backup(Long backupId, OperationLog operationLog) throws BackupException {
         String zeebeEsRepository = blueberryConfig.getZeebeRecordRepository();
+        CamundaApplicationInt.BackupOperation backupOperation = new CamundaApplicationInt.BackupOperation();
 
         HttpEntity<?> zeebeEsBackupRequest = new HttpEntity<>(Map.of("indices", "zeebe-record*", "feature_states", List.of("none")));
-        ResponseEntity<String> zeebeEsBackupResponse = restTemplate.exchange(blueberryConfig.getElasticsearchUrl() + "/_snapshot/" + blueberryConfig.getZeebeRepository() + "/" + backupId, HttpMethod.PUT, zeebeEsBackupRequest, String.class);
-        operationLog.info("Start Zeebe ES Backup on [" + zeebeEsRepository + "] response: " + zeebeEsBackupResponse.getStatusCode().value() + " [" + zeebeEsBackupResponse.getBody() + "]");
+        String urlComplete = blueberryConfig.getElasticsearchUrl() + "/_snapshot/" + blueberryConfig.getZeebeRecordRepository() + "/" + backupId;
+        try {
+            ResponseEntity<String> zeebeEsBackupResponse = restTemplate.exchange(urlComplete, HttpMethod.PUT, zeebeEsBackupRequest, String.class);
+            backupOperation.status = zeebeEsBackupResponse.getStatusCode().value();
+
+            operationLog.info(CamundaApplicationInt.COMPONENT.ZEEBERECORD, "Start Zeebe ES Backup on [" + zeebeEsRepository + "] response: " + zeebeEsBackupResponse.getStatusCode().value() + " [" + zeebeEsBackupResponse.getBody() + "]");
+        } catch (Exception e) {
+            logger.error("Exception in esBackup", e);
+
+            backupOperation.title = e.getMessage();
+            backupOperation.message = "Component[" + CamundaApplicationInt.COMPONENT.ZEEBERECORD.toString() + "] Url[" + urlComplete + "]" + e.getMessage();
+            operationLog.error(CamundaApplicationInt.COMPONENT.ZEEBERECORD, "Error during backup ZeebeRecord " + e.getMessage());
+        }
+        return backupOperation;
+    }
+
+    @Override
+    public BackupOperation waitBackup(Long backupId, OperationLog operationLog) throws BackupException {
+        CamundaApplicationInt.BackupOperation backupOperation = new CamundaApplicationInt.BackupOperation();
+
+        String urlComplete = blueberryConfig.getElasticsearchUrl() + "/_snapshot/" + blueberryConfig.getZeebeRecordRepository() + "/" + backupId;
+        boolean written = false;
+        int timeToWait = 100;
+        long totalTimeToWait = 0;
+        int loopCount = 0;
+        ResponseEntity<JsonNode> response = null;
+        boolean backupIsFinished = false;
+        do {
+            logger.info("checking backup status for url {} count {}", urlComplete, loopCount);
+            loopCount++;
+            if (totalTimeToWait > 3000) {
+                timeToWait = 500;
+            }
+            if (totalTimeToWait > 10000) {
+                timeToWait = 1000;
+            }
+            if (totalTimeToWait > 30000) {
+                timeToWait = 5000;
+            }
+
+            try {
+                Thread.sleep(timeToWait);
+                totalTimeToWait += timeToWait;
+
+            } catch (InterruptedException e) {
+                // do nothing
+            }
+
+            try {
+                response = restTemplate.getForEntity(urlComplete, JsonNode.class);
+            } catch (Exception e) {
+                logger.error("Exception in esBackup", e);
+                backupOperation.status = 400;
+                backupOperation.title = e.getMessage();
+                backupOperation.message = "Component[" + CamundaApplicationInt.COMPONENT.ZEEBERECORD.toString() + "] Url[" + urlComplete + "]" + e.getMessage();
+
+                return backupOperation;
+            }
+            JsonNode jsonNode = response.getBody();
+            backupOperation.status = response.getStatusCode().value();
+
+            int status = jsonNode == null ? null : jsonNode.path("status").asInt();
+
+            logger.info("backup status response for url {}: {}, {}", urlComplete, response.getStatusCodeValue(), response.getBody());
+            // Check status
+            backupIsFinished = true;
+            JsonNode snapshots = jsonNode.path("snapshots");
+            for (JsonNode snapshot : snapshots) {
+                String snapshotName = snapshot.path("snapshot").asText();
+                String state = snapshot.path("state").asText();
+                if (!"SUCCESS".equals(state)) {
+                    backupIsFinished = false;
+                }
+                if (!written) {
+                    operationLog.addSnapshotName(CamundaApplicationInt.COMPONENT.ZEEBERECORD, snapshotName);
+
+                }
+            }
+            written = true; //only write once (this can surely be done better :-))
+        }
+        while (response.getStatusCode().is2xxSuccessful() && response.getBody() != null && !backupIsFinished);
+        return backupOperation;
+    }
+
+    @Override
+    public List<BackupInfo> getListBackups() throws OperationException {
+        return List.of();
     }
 }

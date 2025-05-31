@@ -2,7 +2,7 @@ package io.camunda.blueberry.platform.rule;
 
 
 import io.camunda.blueberry.config.BlueberryConfig;
-import io.camunda.blueberry.connect.CamundaApplication;
+import io.camunda.blueberry.connect.CamundaApplicationInt;
 import io.camunda.blueberry.connect.ElasticSearchConnect;
 import io.camunda.blueberry.connect.KubernetesConnect;
 import io.camunda.blueberry.connect.OperationResult;
@@ -89,13 +89,13 @@ public class RuleOptimizeRepository implements Rule {
                     accessElasticsearchRepository ? RuleStatus.CORRECT : RuleStatus.FAILED,
                     operationResult.command);
 
-            // if the repository exist, then we stop the rule execution here
+                // if the repository exist, then we stop the rule execution here
             if (accessElasticsearchRepository) {
                 ruleInfo.addDetails("Repository exist in Elastic search");
             } else {
                 // if we don't execute the rule, we stop here on a failure
                 if (!execute) {
-                    ruleInfo.addDetails("Repository does not exist in Elastic search, and must be created");
+                    ruleInfo.addError("Repository does not exist in Elastic search, and must be created");
                     ruleInfo.setStatus(RuleStatus.FAILED);
                 }
             }
@@ -111,7 +111,7 @@ public class RuleOptimizeRepository implements Rule {
             if (operationResult.success) {
                 ruleInfo.addDetails("Repository is created in ElasticSearch");
             } else {
-                ruleInfo.addDetails("Error when creating the repository in ElasticSearch :" + operationResult.details);
+                ruleInfo.addError("Error when creating the repository in ElasticSearch :" + operationResult.details);
                 ruleInfo.setStatus(RuleStatus.FAILED);
             }
             ruleInfo.addVerifications("Check Elasticsearch repository [" + optimizeRepository
@@ -141,7 +141,7 @@ public class RuleOptimizeRepository implements Rule {
     }
 
     private String getRepositoryKubernetes(RuleInfo ruleInfo) {
-        OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplication.COMPONENT.OPTIMIZE, blueberryConfig.getNamespace());
+        OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplicationInt.COMPONENT.OPTIMIZE, blueberryConfig.getNamespace());
         if (!operationResult.success) {
             ruleInfo.addDetails("Can't access the Repository name in the pod, or does not exist");
             ruleInfo.addDetails(operationResult.details);

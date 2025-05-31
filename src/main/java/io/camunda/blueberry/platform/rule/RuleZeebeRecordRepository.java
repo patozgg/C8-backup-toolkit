@@ -68,7 +68,7 @@ public class RuleZeebeRecordRepository implements Rule {
 
             //------------ Second step, verify if the repository exist in elasticSearch
             if (ruleInfo.inProgress()) {
-                // now check if the repository exist in Elastic search
+                // now check if the repository exists in Elastic search
                 OperationResult operationResult = elasticSearchConnect.existRepository(blueberryConfig.getZeebeRecordRepository());
                 accessElasticsearchRepository = operationResult.resultBoolean;
                 ruleInfo.addVerificationsButWillBeFixed("Check Elasticsearch repository [" + blueberryConfig.getZeebeRecordRepository() + "] :"
@@ -98,7 +98,7 @@ public class RuleZeebeRecordRepository implements Rule {
                     ruleInfo.addDetails("Repository is created in ElasticSearch");
                     ruleInfo.setStatus(RuleStatus.CORRECT);
                 } else {
-                    ruleInfo.addDetails("Error when creating the repository in ElasticSearch :" + operationResult.details);
+                    ruleInfo.addError("Error when creating the repository in ElasticSearch :" + operationResult.details);
                     ruleInfo.setStatus(RuleStatus.FAILED);
                 }
                 ruleInfo.addVerifications("Check Elasticsearch repository [" + blueberryConfig.getZeebeRecordRepository()

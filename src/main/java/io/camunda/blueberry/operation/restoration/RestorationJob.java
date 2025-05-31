@@ -16,7 +16,15 @@ public class RestorationJob {
      */
     public void restoration() {
         long beginTime = System.currentTimeMillis();
-        operationLog.info("Start Restoration");
+        operationLog.startOperation("Start Restoration",9);
+
+        // restore Operate backup
+
+        // restore TaskList backup
+
+        // Restore Optimize
+
+        // Restore Zeebe Record
 
         // Scale down Zeebe
 
@@ -28,8 +36,7 @@ public class RestorationJob {
 
         // scale up Zeebe
 
-        // restore elastic search
 
-        operationLog.info("End of Restoration in " + (System.currentTimeMillis() - beginTime) + " ms");
+        operationLog.endOperation();
     }
 }

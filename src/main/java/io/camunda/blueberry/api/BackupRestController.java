@@ -11,9 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("blueberry")
@@ -51,10 +50,10 @@ public class BackupRestController {
     }
 
     @GetMapping(value = "/api/backup/monitor", produces = "application/json")
-    public MonitorStatus monitorBackup() {
+    public MonitorStatus monitorBackup(@RequestParam(name = "timezoneoffset") Long timezoneOffset) {
 
         MonitorStatus monitorStatus = new MonitorStatus();
-        monitorStatus.statusBackup = "";
+        monitorStatus.statusBackup = "READY";
         BackupJob backupJob = backupManager.getBackupJob();
 
         if (backupJob != null) {
@@ -65,9 +64,14 @@ public class BackupRestController {
                 monitorStatus.totalNumberOfSteps = operationLog.getTotalNumberOfSteps();
                 monitorStatus.operationName = operationLog.getOperationName();
                 monitorStatus.stepName = operationLog.getStepName();
-            }
-        }
 
+                // get the last message
+                monitorStatus.messages = operationLog.getMessages();
+
+            }
+            monitorStatus.backupId = backupJob.getBackupId();
+        }
+        monitorStatus.dateStatus = DateOperation.dateTimeToHumanString(DateOperation.getLocalDateTimeNow(), timezoneOffset);
         return monitorStatus;
     }
 
@@ -78,28 +82,45 @@ public class BackupRestController {
      * @return
      */
     @GetMapping(value = "/api/backup/list", produces = "application/json")
-    public Map<String, Object> listBackup(@RequestParam(name = "timezoneoffset") Long timezoneOffset) {
+    public Map<String, Object> listBackups(@RequestParam(name = "timezoneoffset") Long timezoneOffset) {
 
         Map<String, Object> result = new HashMap<>();
         try {
             logger.debug("Rest [/api/backup/list]");
-            List<BackupInfo> listBackup = zeebeConnect.getListBackup();
+
+            List<BackupInfo> listBackup = backupManager.getListBackups();
 
             logger.info("Rest [/api/backup/list] found {} backups", listBackup.size());
+            BackupJob backupJob = backupManager.getBackupJob();
 
-            result.put("listBackup", listBackup.stream().map(obj -> {
+            List<Map<String, Object>> listBackupMap = listBackup.stream().map(obj -> {
                         Map<String, Object> mapRecord = new HashMap<>();
                         mapRecord.put("backupId", obj.backupId);
                         mapRecord.put("backupName", obj.backupName);
+                        mapRecord.put("components", obj.components.stream()
+                                .map(Object::toString)
+                                .collect(Collectors.toList()));
                         mapRecord.put("backupTime", DateOperation.dateTimeToHumanString(obj.backupTime, timezoneOffset));
                         mapRecord.put("backupStatus", obj.status == null ? "" : obj.status.toString());
-
+                        if (backupJob != null && obj.backupId == backupJob.getBackupId()
+                                && BackupJob.JOBSTATUS.INPROGRESS.equals(backupJob.getJobStatus()))
+                            mapRecord.put("backupStatus", BackupJob.JOBSTATUS.INPROGRESS.toString());
                         return mapRecord;
                     })
-                    .toList());
-            return result;
-        } catch (OperationException e) {
-            result.putAll(e.getRecord());
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            if (backupJob != null) {
+                // Attention, the backup is maybe complete, and already in the previous list
+                Optional<BackupInfo> first = listBackup.stream().filter(obj -> obj.backupId == backupJob.getBackupId()).findFirst();
+                if (!first.isPresent()) {
+                    listBackupMap.add(0, Map.of("backupId", backupJob.getBackupId(),
+                            "backupName", "",
+                            "backupTime", DateOperation.dateTimeToHumanString(DateOperation.getLocalDateTimeNow(), timezoneOffset),
+                            "backupStatus", backupJob.getJobStatus().toString()));
+                }
+            }
+            result.put("listBackup", listBackupMap);
+
             return result;
 
         } catch (Exception e) {
@@ -118,5 +139,12 @@ public class BackupRestController {
         String operationName;
         @JsonProperty
         String stepName;
+
+        @JsonProperty
+        String dateStatus;
+        @JsonProperty
+        Long backupId;
+        @JsonProperty
+        List<OperationLog.Message> messages;
     }
 }

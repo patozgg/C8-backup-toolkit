@@ -117,7 +117,7 @@ public class ExplorationCluster {
 
     private List<BackupInfo> refreshListBackup() {
         try {
-            listBackups = zeebeConnect.getListBackup();
+            listBackups = zeebeConnect.getListBackups();
         } catch (OperationException e) {
             listBackups = null;
             logger.error(e.getMessage(), e);
@@ -150,10 +150,10 @@ public class ExplorationCluster {
     /*  Repository per component                                           */
     /*                                                                      */
     /* ******************************************************************** */
-    private Map<CamundaApplication.COMPONENT, Object> repositoryPerComponent = new HashMap<>();
+    private Map<CamundaApplicationInt.COMPONENT, Object> repositoryPerComponent = new HashMap<>();
     private String namespace = null;
 
-    private Map<CamundaApplication.COMPONENT, Object> refeshRepositoryComponent() {
+    private Map<CamundaApplicationInt.COMPONENT, Object> refeshRepositoryComponent() {
         // namespace never change, so when we get it, save it
         if (namespace == null) {
             namespace = kubernetesConnect.getCurrentNamespace();
@@ -167,12 +167,12 @@ public class ExplorationCluster {
 
 
         // Components present
-        for (CamundaApplication.COMPONENT component : List.of(CamundaApplication.COMPONENT.values())) {
+        for (CamundaApplicationInt.COMPONENT component : List.of(CamundaApplicationInt.COMPONENT.values())) {
             try {
                 // is this component is part of the cluster?
 
                 // Yes, then get the list
-                // repositoryPerComponent.put(CamundaApplication.COMPONENT.OPERATE, kubernetesConnect.getRepositoryNameV2(CamundaApplication.COMPONENT.OPERATE, namespace));
+                // repositoryPerComponent.put(CamundaApplicationInt.COMPONENT.OPERATE, kubernetesConnect.getRepositoryNameV2(CamundaApplicationInt.COMPONENT.OPERATE, namespace));
             } catch (Exception e) {
                 logger.error("Can't get result per component {}", e.getMessage());
             }

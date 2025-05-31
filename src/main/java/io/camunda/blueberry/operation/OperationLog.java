@@ -1,5 +1,6 @@
 package io.camunda.blueberry.operation;
 
+import io.camunda.blueberry.connect.CamundaApplicationInt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,12 +9,14 @@ import java.util.*;
 public class OperationLog {
     private final List<Message> listMessages = new ArrayList<>();
     Logger logger = LoggerFactory.getLogger(OperationLog.class);
-    Map<String, List<String>> snapshotPerComponents = new HashMap<>();
+    Map<CamundaApplicationInt.COMPONENT, List<String>> snapshotPerComponents = new HashMap<>();
     private String operationName;
     private int totalNumberOfSteps;
     private int currentStep;
     private String stepName;
     private long operationBeginTime;
+
+    private CamundaApplicationInt.COMPONENT component;
 
     public OperationLog() {
     }
@@ -24,8 +27,8 @@ public class OperationLog {
      * @param operationName      the operation name
      * @param totalNumberOfSteps total number of step expected
      */
-    public void startOperation(String operationName, int totalNumberOfSteps) {
-        info("Start operation [" + operationName + "] with " + totalNumberOfSteps + " steps");
+    public void startOperation( String operationName, int totalNumberOfSteps) {
+        info(component, "Start operation [" + operationName + "] with " + totalNumberOfSteps + " steps");
         this.operationName = operationName;
         this.totalNumberOfSteps = totalNumberOfSteps;
         this.currentStep = 0;
@@ -37,45 +40,49 @@ public class OperationLog {
      *
      * @param stepName name of the step
      */
-    public void operationStep(String stepName) {
+    public void operationStep(CamundaApplicationInt.COMPONENT component, String stepName) {
         this.currentStep++;
         this.stepName= stepName;
-        info("Operation[" + operationName + "/" + stepName + "] : " + currentStep + "/" + totalNumberOfSteps);
+        info(null,"Operation[" + operationName + "/" + stepName + "] : " + currentStep + "/" + totalNumberOfSteps);
     }
 
-    public void operationStep(int forceStep, String stepName) {
+    public void operationStep(CamundaApplicationInt.COMPONENT component, int forceStep, String stepName) {
+        this.component = component;
         this.currentStep=forceStep;
         this.stepName= stepName;
-        info("Operation[" + operationName + "/" + stepName + "] : " + currentStep + "/" + totalNumberOfSteps);
+        info(component,"Operation[" + operationName + "/" + stepName + "] : " + currentStep + "/" + totalNumberOfSteps);
     }
 
     public void endOperation() {
-        info("Operation[" + operationName + "] : finished in " + (System.currentTimeMillis() - operationBeginTime) + " ms");
+        info(null, "Operation[" + operationName + "] : finished in " + (System.currentTimeMillis() - operationBeginTime) + " ms");
     }
 
-    public void info(String message) {
-        logger.info(message);
+    public void info(CamundaApplicationInt.COMPONENT component, String message) {
+        logger.info("Component:{} : {}",component, message);
         Message msg = new Message();
         msg.type = Type.INFO;
         msg.message = message;
+        msg.component = component;
         msg.date = new Date();
         listMessages.add(msg);
     }
 
-    public void warning(String message) {
+    public void warning(CamundaApplicationInt.COMPONENT component,String message) {
         logger.error(message);
         Message msg = new Message();
         msg.type = Type.WARNING;
         msg.message = message;
+        msg.component = component;
         msg.date = new Date();
         listMessages.add(msg);
     }
 
-    public void error(String message) {
+    public void error(CamundaApplicationInt.COMPONENT component, String message) {
         logger.error(message);
         Message msg = new Message();
         msg.type = Type.ERROR;
         msg.message = message;
+        msg.component = component;
         msg.date = new Date();
         listMessages.add(msg);
     }
@@ -84,7 +91,7 @@ public class OperationLog {
         return listMessages;
     }
 
-    public void addSnapshotName(String component, String snapshotName) {
+    public void addSnapshotName(CamundaApplicationInt.COMPONENT component, String snapshotName) {
         List<String> listSnapshop = snapshotPerComponents.get(component);
         if (listSnapshop == null) {
             listSnapshop = new ArrayList();
@@ -109,11 +116,16 @@ public class OperationLog {
         return stepName;
     }
 
+    public String getComponent() {
+        return component==null? "": component.name();
+    }
+
     enum Type {INFO, WARNING, ERROR}
 
-    public class Message {
+    public static class Message {
         public Type type;
         public String message;
+        public CamundaApplicationInt.COMPONENT component;
         public Date date;
     }
 }

@@ -1,6 +1,9 @@
 package io.camunda.blueberry.connect;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class BackupInfo {
 
@@ -11,6 +14,35 @@ public class BackupInfo {
      */
     public LocalDateTime backupTime;
     public Status status;
+
+    public List<Details> details;
+
+    public static class Details {
+        private String snapshotName;
+        private String state;
+        private String startTime;
+        private List<String> failures;
+
+        public String getSnapshotName() {
+            return snapshotName;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public String getStartTime() {
+            return startTime;
+        }
+
+        public List<String> getFailures() {
+            return failures;
+        }
+    }
+    /**
+     * Register which conmponent declare this backup
+     */
+    public Set<CamundaApplicationInt.COMPONENT> components = new HashSet<>();
 
     public static Status fromZeebeStatus(String status) {
         switch (status) {
@@ -41,5 +73,5 @@ public class BackupInfo {
         }
     }
 
-    public enum Status {COMPLETED, FAILED, INPROGRESS, UNKNOWN}
+    public enum Status {COMPLETED, FAILED, INPROGRESS, UNKNOWN, PARTIALBACKUP}
 }

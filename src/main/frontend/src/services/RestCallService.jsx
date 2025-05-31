@@ -42,21 +42,32 @@ class RestCallService {
       headers: headers
     };
     uri = uri + "&timezoneoffset=" + (new Date()).getTimezoneOffset();
+    console.log("getJson() : request to URI["+uri+"] objToCall "+objToCall)
+    var selfUri = uri;
+    var fctToCallbackGeneral = fctToCallback;
+    if (! fctToCallbackGeneral) {
+      console.log("getJson: no Call Back define");
+    }
     axios.get(uri, requestOptions)
       .then(axiosPayload => {
-        console.log("RestCallService.getJson: payload:"+JSON.stringify(axiosPayload.data));
+        console.log("RestCallService.getJson(): uri["+selfUri+"] receive payload:"+JSON.stringify(axiosPayload.data));
         let httpResponse = new HttpResponse(axiosPayload, null);
-        fctToCallback.call(objToCall, httpResponse);
+        console.log("RestCallService.getJson(): RECEIVE STATUS call Callback now");
+        if (fctToCallbackGeneral)
+          fctToCallbackGeneral.call(objToCall, httpResponse);
+        else {
+          console.log("RestCallService.getJson(): NO OBJECT TO CALL BACK");
+        }
       })
       .catch(error => {
-        console.log("RestcallService.getJson() error " + error);
         if (error.response && error.response.status === 401) {
+          console.log("RestcallService.getJson() uri["+selfUri+"] error 401: " + error);
           return;
         }
-        console.error("RestCallService.getJson: catch error:" + error);
+        console.error("RestCallService.getJson(): uri["+selfUri+"] catch error:" + error);
         let httpResponse = new HttpResponse({}, error);
-        fctToCallback.call(objToCall, httpResponse);
-
+        if (fctToCallbackGeneral)
+          fctToCallback.call(objToCall, httpResponse);
       });
   }
 
@@ -73,16 +84,16 @@ class RestCallService {
     var selfUri = uri;
     axios.post(uri, param, requestOptions)
       .then(axiosPayload => {
-        console.log("RestCallService.getJson: payload:"+JSON.stringify(axiosPayload.data));
+        console.log("RestCallService.postJson(): uri["+selfUri+"] payload:"+JSON.stringify(axiosPayload.data));
         if (fctToCallback != null) {
           let httpResponse = new HttpResponse(axiosPayload, null);
           fctToCallback.call(objToCall, httpResponse);
         } else {
-          console.log("RestCallService.postJson: No call back defined");
+          console.log("RestCallService.postJson(): uri["+selfUri+"]  No call back defined");
         }
       })
       .catch(error => {
-        console.error("RestCallService.getJson: Uri[" + selfUri + "] catch error:" + error);
+        console.error("RestCallService..postJson(): uri[" + selfUri + "] catch error:" + error);
         if (error.response && error.response.status && error.response.status === 401) {
           let homeBlueberry = window.location.href;
           console.log("Redirect : to[" + homeBlueberry + "]");
@@ -93,7 +104,7 @@ class RestCallService {
           let httpResponse = new HttpResponse({}, error)
           fctToCallback.call(objToCall, httpResponse);
         } else {
-          console.log("RestCallService.postJson: No call back defined");
+          console.log("RestCallService.postJson(): uri[" + selfUri + "] No call back defined");
         }
 
 
@@ -151,7 +162,7 @@ class RestCallService {
     var selfUri = uri;
     axios.post(uri, formData, requestOptions)
       .then(axiosPayload => {
-        // console.log("RestCallService.getJson: payload:"+JSON.stringify(axiosPayload.data));
+        // console.log("RestCallService.postUpload(): payload:"+JSON.stringify(axiosPayload.data));
         if (fctToCallback != null) {
           let httpResponse = new HttpResponse(axiosPayload, null);
           fctToCallback.call(objToCall, httpResponse);
@@ -160,8 +171,8 @@ class RestCallService {
         }
       })
       .catch(error => {
-        console.error("RestCallService.getJson: Uri[" + selfUri + "] catch error:" + error.message);
-        if (error.response && error.response.status && error.response.status === 401) {
+        console.error("RestCallService.postUpload: Uri[" + selfUri + "] catch error:" + error.message);
+        if (error.response && error.postUpload.status && error.response.status === 401) {
           let homeBlueberry = window.location.href;
           console.log("Redirect : to[" + homeBlueberry + "]");
           window.location = homeBlueberry;

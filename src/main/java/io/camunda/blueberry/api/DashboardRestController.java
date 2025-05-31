@@ -113,10 +113,11 @@ public class DashboardRestController {
 
 
     @GetMapping(value = "/api/dashboard/checkConnection", produces = "application/json")
-    public Map<String, Object> chgeckConnection() {
+    public Map<String, Object> checkConnection() {
         try {logger.debug("checkConnection [/api/dashboard/all]");
             return Map.of("status", "",
                     "zeebe", toMap(zeebeConnect.isConnectedInformation()),
+                    "zeebeActuator", toMap(zeebeConnect.isConnectedActuatorInformation()),
                     "elasticsearch", toMap(elasticSearchConnect.isConnectedInformation()),
                     "operate", toMap(operateConnect.isConnectedInformation()),
                     "tasklist", toMap(taskListConnect.isConnectedInformation()),
@@ -133,7 +134,7 @@ public class DashboardRestController {
         }
     }
 
-    private Map<String,Object> toMap(CamundaApplication.ConnectionInfo connectionInfo) {
+    private Map<String,Object> toMap(CamundaApplicationInt.ConnectionInfo connectionInfo) {
         return Map.of("connection", connectionInfo.isConnected? COMPONENT_READY : COMPONENT_NOT_CONNECTED,
         "explanation", connectionInfo.explanations);
     }

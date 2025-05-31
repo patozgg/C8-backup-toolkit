@@ -110,7 +110,7 @@ public class RuleTasklistRepository implements Rule {
                 if (operationResult.success) {
                     ruleInfo.addDetails("Repository is created in ElasticSearch");
                 } else {
-                    ruleInfo.addDetails("Error when creating the repository in ElasticSearch :" + operationResult.details);
+                    ruleInfo.addError("Error when creating the repository in ElasticSearch :" + operationResult.details);
                     ruleInfo.setStatus(RuleStatus.FAILED);
                 }
                 ruleInfo.addVerifications("Check Elasticsearch repository [" + taskListRepository
@@ -138,13 +138,13 @@ public class RuleTasklistRepository implements Rule {
     }
 
     private String getRepositoryKubernetes(RuleInfo ruleInfo) {
-        OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplication.COMPONENT.TASKLIST, blueberryConfig.getNamespace());
+        OperationResult operationResult = kubernetesConnect.getRepositoryName(CamundaApplicationInt.COMPONENT.TASKLIST, blueberryConfig.getNamespace());
         if (!operationResult.success) {
             ruleInfo.addDetails("Can't access the Repository name in the pod, or does not exist");
             ruleInfo.addDetails(operationResult.details);
             ruleInfo.setStatus(RuleStatus.FAILED);
         } else {
-            ruleInfo.addDetails("Access RepositoryName exploring Kubernetes environment");
+            ruleInfo.addError("Access RepositoryName exploring Kubernetes environment");
             return operationResult.resultSt;
         }
         return null;

@@ -4,6 +4,7 @@ import io.camunda.blueberry.connect.*;
 import io.camunda.blueberry.exception.BackupException;
 import io.camunda.blueberry.operation.OperationLog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,47 +55,61 @@ public class BackupJob {
 
 
         // Keep only applications existing in the cluster
-        List<CamundaApplication> listApplications = List.of(operateConnect, taskListConnect, optimizeConnect)
+        List<CamundaApplicationInt> listApplications = List.of(operateConnect, taskListConnect, optimizeConnect)
                 .stream()
-                .filter(CamundaApplication::exist)
+                .filter(CamundaApplicationInt::exist)
                 .toList();
 
 
-
         // For each application, start the backup
-        for (CamundaApplication application : listApplications) {
-            operationLog.operationStep("backup "+application.getComponent().name());
-            CamundaApplication.BackupOperation backupOperation = application.backup(backupId, operationLog);
+        List<CamundaApplicationInt> listActivesApplication = new ArrayList<>();
+        for (CamundaApplicationInt application : listApplications) {
+            if (!application.isActive()) {
+                operationLog.operationStep(application.getComponent(), "Application " + application.getComponent().name() + " is not active, skip it");
+                continue;
+            }
+            listActivesApplication.add(application);
+            operationLog.operationStep(application.getComponent(), "backup " + application.getComponent().name());
+
+
+            CamundaApplicationInt.BackupOperation backupOperation = application.backup(backupId, operationLog);
             if (!backupOperation.isOk()) {
                 this.jobStatus = JOBSTATUS.FAILED;
                 throw new BackupException(application.getComponent(),
                         400,
                         backupOperation.title,
                         backupOperation.message, backupId);
-
             }
         }
 
         // Wait end of backup Operate, TaskList, Optimize, Zeebe
-        for (CamundaApplication application : listApplications) {
+        for (CamundaApplicationInt application : listActivesApplication) {
             application.waitBackup(backupId, operationLog);
         }
 
         // Stop Zeebe imported : force to step 4
-        operationLog.operationStep(4, "Pause Zeebe");
+        operationLog.operationStep(CamundaApplicationInt.COMPONENT.ZEEBE, 4, "Pause Zeebe");
         zeebeConnect.pauseExporting(operationLog);
 
         // backup Zeebe record
-        operationLog.operationStep(5, "Backup Zeebe Elasticsearch");
-        elasticSearchConnect.esBackup(backupId, operationLog);
+        operationLog.operationStep(CamundaApplicationInt.COMPONENT.ZEEBERECORD, 5, "Backup Zeebe Elasticsearch");
+        BackupComponentInt.BackupOperation backupOperation = elasticSearchConnect.backup(backupId, operationLog);
+        if (!backupOperation.isOk()) {
+            this.jobStatus = JOBSTATUS.FAILED;
+            throw new BackupException(CamundaApplicationInt.COMPONENT.ZEEBERECORD,
+                    400,
+                    backupOperation.title,
+                    backupOperation.message, backupId);
+        }
+        elasticSearchConnect.waitBackup(backupId, operationLog);
 
         // backup Zeebe
-        operationLog.operationStep(6, "Backup Zeebe");
+        operationLog.operationStep(CamundaApplicationInt.COMPONENT.ZEEBE, 6, "Backup Zeebe");
         zeebeConnect.backup(backupId, operationLog);
-        zeebeConnect.monitorBackup(backupId, operationLog);
+        zeebeConnect.waitBackup(backupId, operationLog);
 
         // Finish? Then stop all restoration pod
-        operationLog.operationStep(7, "Resume Zeebe");
+        operationLog.operationStep(CamundaApplicationInt.COMPONENT.ZEEBE, 7, "Resume Zeebe");
         zeebeConnect.resumeExporting(operationLog);
 
         operationLog.endOperation();

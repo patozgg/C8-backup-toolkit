@@ -18,6 +18,7 @@ public class OperationException extends Exception {
     private final int status;
     private final BLUEBERRYERRORCODE blueberryErrorCode;
 
+
     /**
      * @param blueberryErrorCode the Blueberry code, categorize the error
      * @param status             Http Status, returned by Zeebe or any other API called

@@ -54,8 +54,8 @@ public class RuleZeebeContainer implements Rule {
         // get the Pod description
         RuleInfo ruleInfo = new RuleInfo(this);
         if (validRule()) {
+            ruleInfo.addError("Not implemented yet");
             ruleInfo.setStatus( RuleStatus.FAILED);
-            ruleInfo.addDetails("Not implemented yet");
         } else
             ruleInfo.setStatus( RuleStatus.DEACTIVATED);
         return ruleInfo;

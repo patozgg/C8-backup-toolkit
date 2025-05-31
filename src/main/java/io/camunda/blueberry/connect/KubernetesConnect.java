@@ -7,10 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.List;
-
 
 @Component
 public class KubernetesConnect {
@@ -69,7 +65,7 @@ public class KubernetesConnect {
      * @param nameSpace namespace
      * @return the result. operationResult.resultBoolean is true if the component exist
      */
-    public OperationResult existComponent(CamundaApplication.COMPONENT component, String nameSpace) {
+    public OperationResult existComponent(CamundaApplicationInt.COMPONENT component, String nameSpace) {
         OperationResult operationResult = new OperationResult();
         operationResult.success = true;
         operationResult.command = "kubectl get pods | grep " + component.toString();
@@ -84,7 +80,7 @@ public class KubernetesConnect {
      * @param nameSpace namespace
      * @return the result
      */
-    public OperationResult getRepositoryName(CamundaApplication.COMPONENT component, String nameSpace) {
+    public OperationResult getRepositoryName(CamundaApplicationInt.COMPONENT component, String nameSpace) {
         // Soon: ask the pod informatoin and read it from it
         OperationResult operationResult = new OperationResult();
         switch (component) {
@@ -131,7 +127,7 @@ public class KubernetesConnect {
      * @return
      */
      /**
-    public OperationResult getRepositoryNameV2(CamundaApplication.COMPONENT component, String nameSpace) {
+    public OperationResult getRepositoryNameV2(CamundaApplicationInt.COMPONENT component, String nameSpace) {
         OperationResult operationResult = new OperationResult();
         List<Pod> pods = null;
         try {
