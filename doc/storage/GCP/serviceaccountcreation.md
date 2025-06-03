@@ -9,7 +9,7 @@ It is required to have a service account in order to have your cluster and Camun
 
 ![IAM Service Accounts](image/IAM.png)
 
-2. Click create service account.
+2. Click `create and continue` service account.
 
 3. Fill out the service account name with your preference and add a description (optional). Then click create and continue.
 
