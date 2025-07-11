@@ -9,13 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
- * This class are in charge to start a backup,
+ * This class is in charge to start a backup,
  */
 @Component
 public class BackupManager {
@@ -83,7 +80,7 @@ public class BackupManager {
 
     /**
      * If a job is started, then a backupJob exist.
-     * If the backup is terminated, then the backypJob is still available, with a status "TERMINATED"
+     * If the backup is terminated, then the backupJob is still available, with a status "TERMINATED"
      *
      * @return
      */
@@ -121,7 +118,7 @@ public class BackupManager {
             if (backupComponent.isActive())
                 totalActiveComponents++;
         }
-        for (BackupInfo backupInfo : mergedList) {
+        for (BackupInfo backupInfo : listBackupResult.listBackups) {
             if (backupInfo.status.equals(BackupInfo.Status.COMPLETED) && backupInfo.components.size() != totalActiveComponents) {
                 backupInfo.status = BackupInfo.Status.PARTIALBACKUP;
             }

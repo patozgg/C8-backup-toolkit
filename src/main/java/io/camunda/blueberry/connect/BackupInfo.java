@@ -56,7 +56,6 @@ public class BackupInfo {
 
     public enum Status {COMPLETED, FAILED, IN_PROGRESS, UNKNOWN, PARTIALBACKUP}
 
-    public long getBackupId(){return backupId;}
 
     public static class Details {
         private String snapshotName;
