@@ -2,7 +2,7 @@ package io.camunda.blueberry.platform.rule;
 
 
 import io.camunda.blueberry.config.BlueberryConfig;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.camunda.blueberry.platform.componentconfig.ConfigZeebe;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,15 +12,22 @@ import java.util.List;
  */
 @Component
 public class RuleZeebeContainer implements Rule {
+    private final BlueberryConfig blueberryConfig;
+    private final AccessParameterValue accessParameterValue;
+    private final ConfigZeebe configZeebe;
 
-
-    @Autowired
-    BlueberryConfig blueberryConfig;
+    RuleZeebeContainer(BlueberryConfig blueberryConfig,
+                       AccessParameterValue accessParameterValue,
+                       ConfigZeebe configZeebe) {
+        this.blueberryConfig = blueberryConfig;
+        this.accessParameterValue = accessParameterValue;
+        this.configZeebe = configZeebe;
+    }
 
     @Override
     public boolean validRule() {
-        // is Operate is define in the cluster?
-        return false;
+
+        return blueberryConfig.getZeebeActuatorUrl() != null;
     }
 
     @Override
@@ -54,10 +61,54 @@ public class RuleZeebeContainer implements Rule {
         // get the Pod description
         RuleInfo ruleInfo = new RuleInfo(this);
         if (validRule()) {
-            ruleInfo.addError("Not implemented yet");
-            ruleInfo.setStatus( RuleStatus.FAILED);
+
+            AccessParameterValue.ResultParameter resultParameter;
+
+            resultParameter = configZeebe.accessParameters();
+            ruleInfo.addVerificationsAssertBoolean("Container type defined: [" + resultParameter.parameters.get(ConfigZeebe.CONTAINER_CONTAINERTYPE) + "]",
+                    resultParameter.parameters.containsKey(ConfigZeebe.CONTAINER_CONTAINERTYPE),
+                    null);
+
+            if (!resultParameter.parameters.containsKey(ConfigZeebe.CONTAINER_CONTAINERTYPE)) {
+                ruleInfo.addError("Value for parameter [" + ConfigZeebe.CONTAINER_CONTAINERTYPE + "] is required");
+                ruleInfo.setStatus(RuleStatus.FAILED);
+            }
+
+            // According to the type of storage, different check
+            List<String> additionalParametersToCheck = null;
+            if (ConfigZeebe.STORE_AZURE.equals(resultParameter.parameters.get(ConfigZeebe.CONTAINER_CONTAINERTYPE))) {
+                additionalParametersToCheck = List.of(ConfigZeebe.AZURE_CONNECTIONSTRING, ConfigZeebe.CONTAINER_BASEPATH, ConfigZeebe.CONTAINER_BUCKETNAME);
+            }
+            if (ConfigZeebe.STORE_GCS.equals(resultParameter.parameters.get(ConfigZeebe.CONTAINER_CONTAINERTYPE))) {
+                additionalParametersToCheck = List.of(ConfigZeebe.CONTAINER_BASEPATH, ConfigZeebe.CONTAINER_BUCKETNAME);
+            }
+            if (ConfigZeebe.STORE_S3.equals(resultParameter.parameters.get(ConfigZeebe.CONTAINER_CONTAINERTYPE))) {
+                additionalParametersToCheck = List.of(ConfigZeebe.CONTAINER_BASEPATH, ConfigZeebe.CONTAINER_BUCKETNAME);
+            }
+
+            if (additionalParametersToCheck != null) {
+
+                for (String parameterKey : additionalParametersToCheck) {
+                    ruleInfo.addVerificationsAssertBoolean("Parameter [" + parameterKey + "]",
+                            resultParameter.parameters.containsKey(parameterKey),
+                            null);
+
+                    if (!resultParameter.parameters.containsKey(parameterKey)) {
+                        ruleInfo.addError("Missing parameter [" + parameterKey + "]");
+                        ruleInfo.setStatus(RuleStatus.FAILED);
+                    }
+                }
+
+
+            }
         } else
-            ruleInfo.setStatus( RuleStatus.DEACTIVATED);
+            ruleInfo.setStatus(RuleStatus.DEACTIVATED);
+
+        if (ruleInfo.inProgress()) {
+            ruleInfo.setStatus(RuleStatus.CORRECT);
+        }
         return ruleInfo;
     }
+
+
 }

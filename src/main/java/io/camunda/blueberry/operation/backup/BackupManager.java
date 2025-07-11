@@ -9,24 +9,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * This class are in charge to start a backup,
  */
 @Component
 public class BackupManager {
-    private final ElasticSearchConnect elasticSearchConnect;
-    Logger logger = LoggerFactory.getLogger(BackupManager.class);
     final OperateConnect operateConnect;
     final TaskListConnect taskListConnect;
     final OptimizeConnect optimizeConnect;
     final ZeebeConnect zeebeConnect;
-    private BackupJob backupJob;
-
+    private final ElasticSearchConnect elasticSearchConnect;
+    Logger logger = LoggerFactory.getLogger(BackupManager.class);
     List<BackupComponentInt> listBackupComponents;
+    private BackupJob backupJob;
 
     public BackupManager(OperateConnect operateConnect, TaskListConnect taskListConnect, OptimizeConnect optimizeConnect,
                          ZeebeConnect zeebeConnect, ElasticSearchConnect elasticSearchConnect,
@@ -51,8 +48,8 @@ public class BackupManager {
             // calculate a new backup ID
             long maxId = 0;
             try {
-                List<BackupInfo> listBackup = getListBackups();
-                for (BackupInfo info : listBackup) {
+                ListBackupResult listBackup = getListBackups();
+                for (BackupInfo info : listBackup.listBackups) {
                     if (info.backupId > maxId)
                         maxId = info.backupId;
                 }
@@ -90,26 +87,26 @@ public class BackupManager {
         return backupJob;
     }
 
-    public static class BackupParameter {
-        public boolean nextId;
-        public Long backupId;
+    public class ListBackupResult{
+        public List<BackupInfo> listBackups = new ArrayList<>();
+        public List<OperationException> listErrors = new ArrayList<>();
+        public Map<String,String> listUrls = new HashMap<>();
     }
-
-
     /**
      * Return the list of backup
      * All components are asking its backup, to establish a complete list
      *
      * @return
      */
-    public List<BackupInfo> getListBackups() throws OperationException {
-        List<BackupInfo> mergedList = new ArrayList<>();
+    public ListBackupResult getListBackups() throws OperationException {
+        ListBackupResult listBackupResult = new ListBackupResult();
         for (BackupComponentInt backupComponent : listBackupComponents) {
             try {
-                mergeListBackups(mergedList, backupComponent.getListBackups());
+                mergeListBackups(listBackupResult.listBackups, backupComponent.getListBackups());
+                listBackupResult.listUrls.put(backupComponent.getComponent().name(),backupComponent.getUrlListBackup());
             } catch (OperationException e) {
                 logger.error("Zeebe Error when accessing the list of Backups: {}", e);
-                throw e;
+                listBackupResult.listErrors.add(e);
             }
         }
         // Update the status on each backup according the list of components
@@ -118,13 +115,16 @@ public class BackupManager {
             if (backupComponent.isActive())
                 totalActiveComponents++;
         }
-        for (BackupInfo backupInfo : mergedList) {
+        for (BackupInfo backupInfo : listBackupResult.listBackups) {
             if (backupInfo.status.equals(BackupInfo.Status.COMPLETED) && backupInfo.components.size() != totalActiveComponents) {
                 backupInfo.status = BackupInfo.Status.PARTIALBACKUP;
             }
         }
 
-        return mergedList;
+        listBackupResult.listBackups = listBackupResult.listBackups.stream()
+                .sorted(Comparator.comparingLong(BackupInfo::getBackupId))
+                .toList();
+        return listBackupResult;
     }
 
     /**
@@ -147,5 +147,10 @@ public class BackupManager {
         return referenceList;
 
 
+    }
+
+    public static class BackupParameter {
+        public boolean nextId;
+        public Long backupId;
     }
 }

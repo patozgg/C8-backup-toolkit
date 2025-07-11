@@ -11,6 +11,7 @@ public interface BackupComponentInt {
 
     /**
      * True is the component is active in the cluster
+     *
      * @return
      */
     boolean isActive();
@@ -22,6 +23,8 @@ public interface BackupComponentInt {
     BackupOperation waitBackup(Long backupId, OperationLog operationLog) throws BackupException;
 
     List<BackupInfo> getListBackups() throws OperationException;
+
+    String getUrlListBackup();
 
     class BackupOperation {
         public List<String> listSnapshots = new ArrayList<>();

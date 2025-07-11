@@ -39,16 +39,16 @@ public class BlueberryConfig {
     /**
      * Repository in Elastic search can be created to backup indexes
      */
-    @Value("${blueberry.elasticsearch.operateContainerBasePath:/operate}")
+    @Value("${blueberry.elasticsearch.operateContainerBasePath:operate}")
     private String operateContainerBasePath;
 
-    @Value("${blueberry.elasticsearch.tasklistContainerBasePath:/tasklist}")
+    @Value("${blueberry.elasticsearch.tasklistContainerBasePath:tasklist}")
     private String tasklistContainerBasePath;
 
-    @Value("${blueberry.elasticsearch.optimizeContainerBasePath:/optimize}")
+    @Value("${blueberry.elasticsearch.optimizeContainerBasePath:optimize}")
     private String optimizeContainerBasePath;
 
-    @Value("${blueberry.elasticsearch.zeebeRecordContainerBasePath:/zeeberecord}")
+    @Value("${blueberry.elasticsearch.zeebeRecordContainerBasePath:zeeberecord}")
     private String zeebeRecordContainerBasePath;
 
     @Value("${blueberry.elasticsearch.zeebeRecordRepository:camunda_zeebe_records_backup}")
@@ -76,6 +76,8 @@ public class BlueberryConfig {
 
     @Value("${blueberry.container.azure.containerName:}")
     private String azureContainerName;
+    @Value("${blueberry.container.azure.basePath:}")
+    private String azureBasePath;
 
     // S3 specific configuration
     @Value("${blueberry.container.s3.bucket:}")
@@ -123,7 +125,11 @@ public class BlueberryConfig {
         return azureContainerName;
     }
 
-    public String getContainerType() {
+    public String getAzureBasePath() {
+        return azureBasePath;
+    }
+
+    public String getZeebeContainerType() {
         return containerType;
     }
 
@@ -148,7 +154,7 @@ public class BlueberryConfig {
     }
 
     public String getKubeConfig() {
-        return kubeConfig==null|| kubeConfig.trim().isEmpty()?null: kubeConfig;
+        return kubeConfig == null || kubeConfig.trim().isEmpty() ? null : kubeConfig;
     }
 
     public String getOperateRepository() {
@@ -188,9 +194,6 @@ public class BlueberryConfig {
     public String getGcsBasePath() {
         return gcsBasePath;
     }
-
-
-
 
 
     /**

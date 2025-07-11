@@ -16,6 +16,45 @@ public class BackupInfo {
     public Status status;
 
     public List<Details> details;
+    /**
+     * Register which conmponent declare this backup
+     */
+    public Set<CamundaApplicationInt.COMPONENT> components = new HashSet<>();
+
+    public static Status fromZeebeStatus(String status) {
+        switch (status) {
+            case "FAILED" -> {
+                return Status.FAILED;
+            }
+            case "INCOMPLETE" -> {
+                return Status.FAILED;
+            }
+            case "COMPLETED" -> {
+                return Status.COMPLETED;
+            }
+            case "DOES_NOT_EXIST" -> {
+                return Status.UNKNOWN;
+            }
+            case "IN_PROGRESS" -> {
+                return Status.IN_PROGRESS;
+            }
+            case "SBE_UNKNOWN" -> {
+                return Status.UNKNOWN;
+            }
+            case "NULL_VAL" -> {
+                return Status.UNKNOWN;
+            }
+            default -> {
+                return Status.UNKNOWN;
+            }
+        }
+    }
+
+    public long getBackupId() {
+        return backupId;
+    }
+
+    public enum Status {COMPLETED, FAILED, IN_PROGRESS, UNKNOWN, PARTIALBACKUP}
 
     public static class Details {
         private String snapshotName;
@@ -39,39 +78,4 @@ public class BackupInfo {
             return failures;
         }
     }
-    /**
-     * Register which conmponent declare this backup
-     */
-    public Set<CamundaApplicationInt.COMPONENT> components = new HashSet<>();
-
-    public static Status fromZeebeStatus(String status) {
-        switch (status) {
-            case "FAILED" -> {
-                return Status.FAILED;
-            }
-            case "INCOMPLETE" -> {
-                return Status.FAILED;
-            }
-            case "COMPLETED" -> {
-                return Status.COMPLETED;
-            }
-            case "DOES_NOT_EXIST" -> {
-                return Status.UNKNOWN;
-            }
-            case "IN_PROGRESS" -> {
-                return Status.INPROGRESS;
-            }
-            case "SBE_UNKNOWN" -> {
-                return Status.UNKNOWN;
-            }
-            case "NULL_VAL" -> {
-                return Status.UNKNOWN;
-            }
-            default -> {
-                return Status.UNKNOWN;
-            }
-        }
-    }
-
-    public enum Status {COMPLETED, FAILED, INPROGRESS, UNKNOWN, PARTIALBACKUP}
 }

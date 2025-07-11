@@ -1,9 +1,9 @@
 package io.camunda.blueberry.platform.rule;
 
 
+import io.camunda.blueberry.config.BlueberryConfig;
 import io.camunda.blueberry.connect.ElasticSearchConnect;
 import io.camunda.blueberry.connect.OperationResult;
-import io.camunda.blueberry.config.BlueberryConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +66,7 @@ public class RuleZeebeRecordRepository implements Rule {
 
         if (validRule()) {
 
-            //------------ Second step, verify if the repository exist in elasticSearch
+            //------------ Second step, verify if the repository exists in elasticSearch
             if (ruleInfo.inProgress()) {
                 // now check if the repository exists in Elastic search
                 OperationResult operationResult = elasticSearchConnect.existRepository(blueberryConfig.getZeebeRecordRepository());
@@ -82,7 +82,7 @@ public class RuleZeebeRecordRepository implements Rule {
                 } else {
                     // if we don't execute the rule, we stop here on a failure
                     if (!execute) {
-                        ruleInfo.addDetails("Repository does not exist in Elastic search, and must be created");
+                        ruleInfo.addError("Repository does not exist in Elastic search, and must be created");
                         ruleInfo.setStatus(RuleStatus.FAILED);
                     }
                 }
@@ -92,7 +92,7 @@ public class RuleZeebeRecordRepository implements Rule {
             // Third step, create the repository if asked
             if (execute && ruleInfo.inProgress()) {
                 OperationResult operationResult = elasticSearchConnect.createRepository(blueberryConfig.getZeebeRecordRepository(),
-                        blueberryConfig.getContainerType(),
+                        blueberryConfig.getZeebeContainerType(),
                         blueberryConfig.getZeebeRecordContainerBasePath());
                 if (operationResult.success) {
                     ruleInfo.addDetails("Repository is created in ElasticSearch");
@@ -102,13 +102,16 @@ public class RuleZeebeRecordRepository implements Rule {
                     ruleInfo.setStatus(RuleStatus.FAILED);
                 }
                 ruleInfo.addVerifications("Check Elasticsearch repository [" + blueberryConfig.getZeebeRecordRepository()
-                                + "] ContainerType[" + blueberryConfig.getContainerType()
+                                + "] ContainerType[" + blueberryConfig.getZeebeContainerType()
                                 + "] ContainerName[" + blueberryConfig.getAzureContainerName()
                                 + "] basePath[" + blueberryConfig.getZeebeRecordContainerBasePath() + "]",
-                        operationResult.success? RuleStatus.CORRECT: RuleStatus.FAILED,
+                        operationResult.success ? RuleStatus.CORRECT : RuleStatus.FAILED,
                         operationResult.command);
 
             }
+        }
+        if (ruleInfo.inProgress()) {
+            ruleInfo.setStatus(RuleStatus.CORRECT);
         }
         return ruleInfo;
     }
