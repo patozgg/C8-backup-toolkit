@@ -1,7 +1,7 @@
 # Blueberry application
 
 The Blueberry application is available under an image, and can be deployed via Kubernetes.
-A kubernetes file is accessible on the k8 folder
+A kubernetes file is accessible into the k8 folder
 
 Run this command
 ```shell
@@ -29,17 +29,21 @@ The application is accessible under localhost:9082
 
 ### Dashboard page
 The dashboard gives you a main overview on the backup.
-![Blueberry Dashboard.png](doc/images/blueberry_dashboard.png)
-
+![Blueberry_Dashboard.png](../images/Blueberry_Dashboard.png)
 
 ### Backup page
 
-The backup home page list all existing backups, and starts new backup.
+The Backup home page displays all existing backups and allows you to start a new one.
 
-To start a new backup, click on "start backup". Blueberry calculates the next ID available and start it.
-If the backup must be started using an explicit backup, then give the ID and start it.
+To initiate a new backup, click "Start Backup." Blueberry will automatically calculate the next available backup ID and begin the process.
 
-![backup.png](doc/images/blueberry_backup.png)
+> This URL can be used in a Cron URL to start a backup at a frequency
+ 
+
+If you need to start a backup with a specific ID, simply enter the desired ID and then start the backup manually.
+
+
+![Blueberry_Backup.png](../images/Blueberry_Backup.png)
 
 ### Restore page
 
@@ -58,8 +62,7 @@ If some configuration is missing, the page will detect it and notify you. Using 
 
 See the configuration section.
 
-![Configuration](doc/images/blueberry_configuration.png)
-
+![Blueberry_Configuration.png](../images/Blueberry_Configuration.png)
 
 
 ## Configuration
