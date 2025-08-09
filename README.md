@@ -4,7 +4,8 @@ Documentation to configure the backup using S3, Azure, Minio
 This project contains two aspects
 * a series of documentation, to configure the Camunda cluster to be able to run the backup
 * the Blueberry application, which checks the configuration, can create it, and have an UI to start a backup, get the list of backups and execute a restore
-![Blueberry](doc/images/blueberry_dashboard.png)
+
+![Blueberry_Dashboard.png](doc/blueberry/images/Blueberry_Dashboard.png)
 
 # Documentation
 

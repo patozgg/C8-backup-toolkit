@@ -1,14 +1,82 @@
 # Restore
 
-This procedure explains the restoration procedure.
+This procedure explains the restoration procedure for Zeebe.
 
+https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/restore/
+
+The method to restore Operate, Tasklist and Optimize are based on restoring Elastic Search.
+
+This documentation focuses on how to restore Zeebe.
+
+There are two methods. Using Camunda 8.5 or after should use the first method. Older version can use the `Prepare kubernetes files` method.
+
+
+# Run the restore via an init container
+
+According to the documentation https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/restore/, prepare the following init container
+
+Note that the init container purges the path `/usr/local/zeebe/data` before restoring.
+
+The restore need to find
+* the ZEEBE_BROKER_CLUSTER_NODEID. It is calculated from the pod name in the Statefulset
+* the cluster size: PARTITIONSCOUNT, CLUSTERSIZE, REPLICATIONFACTOR
+* the information to access the storage.
+
+
+
+```yaml
+zeebe:
+  initContainers:
+    - name: zeebe-restore
+      image: camunda/zeebe
+      command: ["/bin/bash"]
+      args:
+        - -c
+        - |
+          if [ ${ZEEBE_RESTORE} = "true" ];
+          then
+            env;
+            export ZEEBE_BROKER_CLUSTER_NODEID=${ZEEBE_BROKER_CLUSTER_NODEID:-${K8S_NAME##*-}};
+            echo ClusterId is $ZEEBE_BROKER_CLUSTER_NODEID;
+            rm -rf /usr/local/zeebe/data/*
+            rm -rf /usr/local/zeebe/data/lost+found;
+            echo "After cleanup"          
+            exec /usr/local/zeebe/bin/restore --backupId=$BACKUP_ID;
+          fi
+      env:
+        - name: K8S_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: ZEEBE_BROKER_CLUSTER_PARTITIONSCOUNT
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_CLUSTERSIZE
+          value: "3"
+        - name: ZEEBE_BROKER_CLUSTER_REPLICATIONFACTOR
+          value: "3"
+          
+        - name: ZEEBE_BROKER_DATA_BACKUP_STORE
+          value: "..."
+        - name: $BACKUP_ID
+          value: "..."
+        - name: ZEEBE_RESTORE
+          value: "false"
+```
+.
+To run a restore, change the value.yaml to turn `ZEEBE_RESTORE` to true and run a helm ugrade.
+Do not forget to turn off `ZEEBE_RESTORE` to false.
+
+
+# Prepare kubernetes files
+
+This method is the old one, before the initContainer method.
 Thanks to the project https://github.com/ManuelDittmar/backup-restore-demo.
 
 The documentation is accessible https://docs.camunda.io/docs/self-managed/operational-guides/backup-restore/backup-and-restore/#restore
 
 
 
-# Preparation
+## Preparation
 
 This preparation has to be done one time. It consists of create one restore file per ClusterSize.
 If you have clusterSize = 3, tou have 3 pods, then 3 PVC to restore.
@@ -29,14 +97,14 @@ The restoration works differently. A software `/bin/restore` is provided in each
  
 
 
-## Prep.1 Creates files from the template
+### Prep.1 Creates files from the template
 
 Let say you have a cluster ClusterSize=3.
 
 **You must create 3 files from the template** `zeebe-restore-job-0.yaml`, `zeebe-restore-job-1.yaml`, `zeebe-restore-job-2.yaml`
 
 
-## Prep.2 Replaces the image
+### Prep.2 Replaces the image
 
 Check the image, and set the exact same image where the backup was performed:
 
@@ -46,9 +114,9 @@ Check the image, and set the exact same image where the backup was performed:
 ```
 
 
-## Prep.3 In each file, modify the  `ZEEBE_BROKER_CLUSTER_NODEID`
+### Prep.3 In each file, modify the  `ZEEBE_BROKER_CLUSTER_NODEID`
 
-<ClusterSize> files are created, named 0 to (ClusterSize-1). In each file, a unique number must be set, started at 0.
+< ClusterSize > files are created, named 0 to (ClusterSize-1). In each file, a unique number must be set, started at 0.
 
 ```
   - name: ZEEBE_BROKER_CLUSTER_NODEID
@@ -62,7 +130,7 @@ For example,
     value: "0"
 ```
 
-## Prep.4 Partitions, ClusterSize, Replication factor
+### Prep.4 Partitions, ClusterSize, Replication factor
 
 Replace all others TODO with the correct information.
 Remember: this information must match the backup, not the current cluster if the configuration change between the backup and the current cluster.
@@ -76,7 +144,7 @@ Remember: this information must match the backup, not the current cluster if the
           value: "TODO: Replication Factor"
 ```
 
-## Prep.5 Check the PVC name
+### Prep.5 Check the PVC name
 
 The PV must be claimed according to the NODEID in **EACH FILE**
 
@@ -101,7 +169,7 @@ volumes:
 
 > Attention: the claimName may be different on your system, because the claim name contains the domain name. Check the claim via a kubetcl get pods on Zeebe
 
-## Prep.6  Storage
+### Prep.6  Storage
 
 Check the Zeebe configuration, and update it.
 
@@ -115,9 +183,9 @@ For example, for an Azure storage:
       value: zeebecontainer
 ```
 
-# Restore
+## Restore
 
-## BackupID
+### BackupID
 
 In the configuration file, the backupID is retrieved from a secret. For example:
 ````
@@ -175,7 +243,7 @@ And check how many instances are on each component.
 curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 ```
 
-## cale down components
+### scale down components
 The idea is to stop all components but keep the PCV.
 
 3.1 Execute these commands:
@@ -294,7 +362,7 @@ green  open   operate-process-8.3.0_                    8hFENmo0TOCbtHWUweN-AA  
 
 
 
-## Restore Zeebe 
+### Restore Zeebe 
 
 6.1 Run each kubernetes file created during the preparation, one by one
 
@@ -318,9 +386,9 @@ Restoration complete.
 ```
 
 
-## Scale back the application
+### Scale back the application
 
-7.1 Use the value saved during the exploration to restart all components with the correct value.
+7.1 Uses the value saved during the exploration to restart all components with the correct value.
 
 ```shell
 kubectl scale sts/camunda-zeebe --replicas=3

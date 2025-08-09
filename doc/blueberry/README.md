@@ -17,7 +17,7 @@ kubectl delete -f blueberry.yaml
 ```
 
 
-The application is accessible under the port 9082. A simple way consist of "port-forward" the port to your PC
+The application is accessible under port 9082. A simple way consist of "port-forward" the port to your PC
 
 ```shell
 kubectl port-forward svc/blueberry-service 9082:9082 -n camunda
@@ -29,7 +29,7 @@ The application is accessible under localhost:9082
 
 ### Dashboard page
 The dashboard gives you a main overview on the backup.
-![Blueberry_Dashboard.png](../images/Blueberry_Dashboard.png)
+![Blueberry_Dashboard.png](images/Blueberry_Dashboard.png)
 
 ### Backup page
 
@@ -43,7 +43,7 @@ To initiate a new backup, click "Start Backup." Blueberry will automatically cal
 If you need to start a backup with a specific ID, simply enter the desired ID and then start the backup manually.
 
 
-![Blueberry_Backup.png](../images/Blueberry_Backup.png)
+![Blueberry_Backup.png](images/Blueberry_Backup.png)
 
 ### Restore page
 
@@ -62,7 +62,7 @@ If some configuration is missing, the page will detect it and notify you. Using 
 
 See the configuration section.
 
-![Blueberry_Configuration.png](../images/Blueberry_Configuration.png)
+![Blueberry_Configuration.png](images/Blueberry_Configuration.png)
 
 
 ## Configuration
@@ -181,7 +181,8 @@ https://docs.camunda.io/docs/self-managed/operate-deployment/operate-configurati
 
 The page shows the different parameters the application used. Check if all of your expected values are correctly available.
 
-![Parameters](doc/images/blueberry_parameters.png)
+
+![Blueberry_Parameters.png](images/Blueberry_Parameters.png)
 
 The configuration is available in the application.yaml, and thanks to SpringBoot, it can be overrided with environment variable
 
@@ -215,7 +216,5 @@ The configuration is available in the application.yaml, and thanks to SpringBoot
 
 # Topics
 
-Check the [Todo.md](Todo.md) file
-Check the [Developement page](doc/dev/Development)
-
+Check the [Development.md](../dev/Development.md)
 
