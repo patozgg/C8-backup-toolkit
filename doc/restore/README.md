@@ -61,6 +61,10 @@ zeebe:
           value: "..."
         - name: ZEEBE_RESTORE
           value: "false"
+      volumeMounts:
+        - name: data
+          mountPath: /usr/local/zeebe/data
+
 ```
 .
 To run a restore, change the value.yaml to turn `ZEEBE_RESTORE` to true and run a helm ugrade.
