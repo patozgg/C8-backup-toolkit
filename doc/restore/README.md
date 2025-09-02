@@ -14,6 +14,8 @@ This documentation focuses on how to restore Zeebe.
 
 > This configuration is needed for a version under 8.6. on 8.6 and upper, the helm chart already contains this initcontainer  
  
+** If you are on 8.6 or upper, skip this part**
+
 
 According to the documentation https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/restore/, prepare the following init container
 
@@ -60,7 +62,7 @@ zeebe:
         - name: ZEEBE_BROKER_DATA_BACKUP_STORE
           value: "..."
         - name: BACKUP_ID
-          value: "..."
+          value: "..." # Change the $BACKUP_ID to your actual value
         - name: ZEEBE_RESTORE
           value: "false"
       volumeMounts:
@@ -80,9 +82,19 @@ Do not forget to turn off `ZEEBE_RESTORE` to false.
 The value.yaml must be updated with the backupId
 
 ````
-        - name: BACKUP_ID
-          value: "..."
+zeebe:
+   enabled: true
+   env:
+   # Environment variables to overwrite the Zeebe startup behavior
+   - name: ZEEBE_RESTORE
+     value: "true"
+   - name: ZEEBE_RESTORE_FROM_BACKUP_ID
+     value: "$BACKUP_ID" # Change the $BACKUP_ID to your actual value             
 ````
+
+> If you are under 8.6 and defined a initcontainer, then update the backupID in the initcontainer too
+ 
+
 
 ## Get the configuration
 
@@ -264,6 +276,5 @@ Check the system.
 
 # Check the restoration
 
-## Zeebe
-Run this command to get the position in Zeebe
+See [CheckRestoration.md](CheckRestoration.md)
 
