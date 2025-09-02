@@ -14,7 +14,7 @@ This documentation focuses on how to restore Zeebe.
 
 > This configuration is needed for a version under 8.6. on 8.6 and upper, the helm chart already contains this initcontainer  
  
-** If you are on 8.6 or upper, skip this part**
+**If you are on 8.6 or up, skip this part**
 
 
 According to the documentation https://docs.camunda.io/docs/8.5/self-managed/operational-guides/backup-restore/restore/, prepare the following init container
@@ -62,7 +62,7 @@ zeebe:
         - name: ZEEBE_BROKER_DATA_BACKUP_STORE
           value: "..."
         - name: BACKUP_ID
-          value: "..." # Change the $BACKUP_ID to your actual value
+          value: "$BACKUP_ID" # Change the $BACKUP_ID to your actual value
         - name: ZEEBE_RESTORE
           value: "false"
       volumeMounts:
@@ -81,6 +81,8 @@ Do not forget to turn off `ZEEBE_RESTORE` to false.
 
 The value.yaml must be updated with the backupId
 
+1.1 Update the backupID in the value.yaml
+
 ````
 zeebe:
    enabled: true
@@ -94,9 +96,14 @@ zeebe:
 
 > If you are under 8.6 and defined a initcontainer, then update the backupID in the initcontainer too
  
+1.2 Execute the change
+
+Run helm upgrade to update the value
+
+The command may change according the way you created the cluster
 
 
-## Get the configuration
+## 1? Get the configuration
 
 > Attention: what is important is the values when the backup was created. Assuming values does not change.
 
@@ -134,7 +141,7 @@ And check how many instances are on each component.
 curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 ```
 
-### scale down components
+### 3. scale down components
 The idea is to stop all components but keep the PCV.
 
 3.1 Execute these commands:
@@ -159,7 +166,7 @@ camunda-elasticsearch-master-2          1/1     Running   0          3m19s
 ```
 
 
-## Delete all indexes in Elastic search
+## 4. Delete all indexes in Elastic search
 When Operate, Tasklist, and Optimize start, they create indexes. It must be purged.
 
 In the k8 folder, an `es-delete-all-indices.yaml` file is present. This Kubernetes file creates a pod that executes this deletion.
@@ -194,28 +201,44 @@ health status index uuid pri rep docs.count docs.deleted store.size pri.store.si
 ```
 The list must be empty.
 
-## Restore Elasticsearch backup
+## 5. Restore Elasticsearch backup
 
-5.1 Run the pod; the script is present in `doc/restore/k8`
+5.1 Create the secret with the correct ID
+
+```shell
+kubectl create secret generic backup-timeid --from-literal=backupTimeId=$BACKUP_ID 
+``` 
+
+Check the es-snapshoot-restore.yaml file
+```yaml
+        - name: BACKUP_TIME_ID
+            valueFrom:
+              secretKeyRef:
+                name: backup-timeid
+                key: backupTimeId
+
+```
+
+5.2 Run the pod; the script is present in `doc/restore/k8`
 
 ```shell
 kubectl apply -f es-snapshot-restore.yaml
 ```
 
-5.2 Monitor the execution. At the end, the pod status changed to `Completed`.
+5.3 Monitor the execution. At the end, the pod status changed to `Completed`.
 
 ```shell
 kubernetes get pods
 es-snapshot-restore-job-pdvzz   0/1     Completed   0          18s
 ```
 
-5.3 Remove the restore pod
+5.4 Remove the restore pod
 
 ```shell
 kubectl delete -f es-snapshot-restore.yaml
 ```
 
-5.4 Check indexes are restored 
+5.5 Check indexes are restored 
 
 ```shell
 curl -X GET "http://localhost:9200/_cat/indices?v"
@@ -253,15 +276,15 @@ green  open   operate-process-8.3.0_                    8hFENmo0TOCbtHWUweN-AA  
 
 
 
-### Restore Zeebe 
+## 6. Restore Zeebe 
 
-Enable Zeebe. The initContainer will run the restoration in each pod.
+6.1 Enable Zeebe. The initContainer will run the restoration in each pod.
 
 ````
 kubectl scale sts/camunda-zeebe --replicas=<ClusterSize>
 ````
 
-### Scale back the application
+### 7. Scale back the application
 
 7.1 Uses the value saved during the exploration to restart all components with the correct value.
 
