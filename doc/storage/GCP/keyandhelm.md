@@ -48,54 +48,11 @@ kubectl create secret generic gcp-credentials --from-literal "key.json=$(cat som
 
 Run the command
 ```shell
-helm upgrade --namespace camunda camunda camunda/camunda-platform -f <MyValue.yaml>
+helm upgrade --namespace camunda camunda camunda/camunda-platform --version <helm version> -f <MyValue.yaml> 
 ```
+# 2. Operate/Tasklist/Optimize/Zeebe Elasticsearch
 
-
-## Test
-
-Run a backup on Zeebe directly. See the documentation
-https://docs.camunda.io/docs/self-managed/zeebe-deployment/operations/management-api/
-
-2.1 Port-forward the server
-```shell
-kubectl port-forward svc/camunda-zeebe-gateway 9600:9600 -n camunda
-```
-2.2 Pause the exporting
-
-```shell
-curl -X POST "http://localhost:9600/actuator/exporting/pause"   -H 'Content-Type: application/json'    -d '{}'
-```
-
-2.3 Execute a backup
-
-```shell
-curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"8\"}"
-```
-2.4 Monitor the backup
-```shell
-curl -s "http://localhost:9600/actuator/backups/8"
-```
-
-2.5 Resume Zeebe
-
-```shell
-curl -X POST "http://localhost:9600/actuator/exporting/resume"  -H 'Content-Type: application/json'    -d '{}'
-```
-
-
-2.6 Check the container
-
-Some files must be visible on the storage
-
-![Container after Zeebe backup](image/ZeebeContainerContent.png)
-
-Under folder 1, a folder 8 is visible (8 is the backup ID)
-
-
-# 2. Operate/Tasklist/Optimize Elasticsearch
-
-2.1 create the configuration
+2.1 Create the configuration for ElasticSearch
 
 The configuration is
 
@@ -185,6 +142,7 @@ helm upgrade --namespace camunda camunda camunda/camunda-platform -f <MyValue.ya
 
 2.4 Create Zeebe repository in Elasticsearch
 
+
 Access Elasticsearch, via a `port-forward` for example
 
 ```shell
@@ -256,6 +214,69 @@ Get all repositories, to verify the creation
 ```shell
 curl -X GET "http://localhost:9200/_snapshot/_all?pretty"
 ```
+
+
+## 3 Test 
+
+Run a backup on components as specified here https://docs.camunda.io/docs/8.6/self-managed/operational-guides/backup-restore/backup/
+
+Note that the following ports might have changed between versions. Please verify. The following applies to helm version 11.2.2
+
+2.10 Forward all necessary services with their respective ports. 
+```shell
+Zeebe Gateway
+kubectl port-forward svc/camunda-zeebe-gateway 9600:9600 -n camunda
+```
+
+```shell
+Optimize
+kubectl port-forward services/camunda-optimize 9620:8092 -n camunda
+```
+```shell
+Tasklist
+kubectl port-forward services/camunda-tasklist 9640:9600 -n camunda
+```
+
+```shell
+Operate
+kubectl port-forward services/camunda-operate 9600:9600 -n camunda
+```
+
+TO BE CONTINUED
+
+
+2.2 Pause the exporting
+
+```shell
+curl -X POST "http://localhost:9600/actuator/exporting/pause"   -H 'Content-Type: application/json'    -d '{}'
+```
+
+2.3 Execute a backup
+
+```shell
+curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"8\"}"
+```
+2.4 Monitor the backup
+```shell
+curl -s "http://localhost:9600/actuator/backups/8"
+```
+
+2.5 Resume Zeebe
+
+```shell
+curl -X POST "http://localhost:9600/actuator/exporting/resume"  -H 'Content-Type: application/json'    -d '{}'
+```
+
+
+2.6 Check the container
+
+Some files must be visible on the storage
+
+![Container after Zeebe backup](image/ZeebeContainerContent.png)
+
+Under folder 1, a folder 8 is visible (8 is the backup ID)
+
+
 
 ##	Test the zeebe Record backup
 2.10 Run a backup on Zeebe Record
