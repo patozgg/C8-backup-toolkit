@@ -222,7 +222,8 @@ Run a backup on components as specified here https://docs.camunda.io/docs/8.6/se
 
 Note that the following ports might have changed between versions. Please verify. The following applies to helm version 11.2.2
 
-2.10 Forward all necessary services with their respective ports. 
+3.1 Forward all necessary services with their respective ports. This is necessary in order to do backups. 
+
 ```shell
 Zeebe Gateway
 kubectl port-forward svc/camunda-zeebe-gateway 9600:9600 -n camunda
@@ -242,105 +243,32 @@ Operate
 kubectl port-forward services/camunda-operate 9600:9600 -n camunda
 ```
 
-TO BE CONTINUED
+3.2 Prepare your command line/terminal with reusable environment variables
 
 
-2.2 Pause the exporting
+export BACKUP_ID=$(date +%s) # unix timestamp as unique always increasing ID
 
-```shell
-curl -X POST "http://localhost:9600/actuator/exporting/pause"   -H 'Content-Type: application/json'    -d '{}'
-```
-
-2.3 Execute a backup
-
-```shell
-curl -X POST "http://localhost:9600/actuator/backups"  -H 'Content-Type: application/json'  -d "{\"backupId\": \"8\"}"
-```
-2.4 Monitor the backup
-```shell
-curl -s "http://localhost:9600/actuator/backups/8"
-```
-
-2.5 Resume Zeebe
-
-```shell
-curl -X POST "http://localhost:9600/actuator/exporting/resume"  -H 'Content-Type: application/json'    -d '{}'
-```
+export ELASTIC_SNAPSHOT_REPOSITORY="zeeberecordrepository" # the name of your zeebe snapshot repository
+export ELASTIC_ENDPOINT="http://localhost:9200"
+export OPERATE_MANAGEMENT_API="http://localhost:9600"
+export OPTIMIZE_MANAGEMENT_API="http://localhost:9620"
+export TASKLIST_MANAGEMENT_API="http://localhost:9640"
+export GATEWAY_MANAGEMENT_API="http://localhost:9660"
 
 
-2.6 Check the container
+
+3.3 Execute backup and verification endpoints as highlighted in the Camunda documentation
+https://docs.camunda.io/docs/8.6/self-managed/operational-guides/backup-restore/backup/ 
+
+
+
+
+
+3.4 Check the container
 
 Some files must be visible on the storage
 
 ![Container after Zeebe backup](image/ZeebeContainerContent.png)
 
-Under folder 1, a folder 8 is visible (8 is the backup ID)
+Under folder 1, a folder with the defined backup ID is visible.
 
-
-
-##	Test the zeebe Record backup
-2.10 Run a backup on Zeebe Record
-
-** Backup **
-
-```shell
-curl -X PUT http://localhost:9200/_snapshot/zeeberecordrepository/backup_1 -H 'Content-Type: application/json'   \
--d '{ "indices": "zeebe-record*", "feature_states": ["none"]}'
-```
-
-An answer {“accepted”:true}, and a folder is created on the container
-
-![Container after zeebe record backup](image/repositoryzeebe.png)
-
-
-** Restore**
-
-2.11 Check the existence of all zeebe-record indexes
-
-```shell
-curl -X GET http://localhost:9200/_cat/indices/zeebe-record*?v
-```
-
-2.12 Delete all indices
-
-```shell
-curl -X DELETE http://localhost:9200/zeebe-record*?
-```
-
-> ***Note***: the deletion may need to delete index per index
-
-2.13 Restore
-
-```shell
-curl -X POST http://localhost:9200/_snapshot/zeeberecordrepository/backup_1/_restore -H "Content-Type: application/json" -d '{ "indices": "*", "ignore_unavailable": true, "include_global_state": true }'
-```
-
-## Test the backup on Operate
-
-This backup is run on Operate. Operate will contact Elasticsearch to run the backup.
-
-2.14 Port forward the port number 9600 on operate
-
-```shell
-kubectl port-forward svc/camunda-operate 9600:9600 -n camunda
-```
-
-> **Note** on 8.5, the port to run the backup is 80, not 9600.
-
-
-2.15 Backup Operate
-
-Run the backup
-
-```shell
-curl -X POST http://localhost:9600/actuator/backups -H 'Content-Type: application/json' -d '{ "backupId": 6}'
-```
-
-2.16 Check the container
-
-
-Get all snapshot on the repository
-
-```shell
-curl -X GET "http://localhost:9200/_snapshot/operaterepository/_all?pretty"
-```
